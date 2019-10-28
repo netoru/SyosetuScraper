@@ -1,0 +1,10 @@
+﻿[*.cs]
+
+# IDE1006: Stili di denominazione
+dotnet_diagnostic.IDE1006.severity = none
+
+# IDE0021: Usa il corpo del blocco per i costruttori
+csharp_style_expression_bodied_constructors = when_on_single_line:silent
+
+# IDE0022: Use block body for methods
+csharp_style_expression_bodied_methods = when_on_single_line:silent

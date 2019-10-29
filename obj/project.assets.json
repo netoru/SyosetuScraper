@@ -3373,26 +3373,28 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Kiyuta\\.nuget\\packages\\": {}
+    "C:\\Users\\Gabriele.Dolfi\\.nuget\\packages\\": {},
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\OneDrive - F.lli Polli Spa\\_Documents\\Visual Studio\\Projects\\SyosetuScraper\\SyosetuScraper.csproj",
+      "projectUniqueName": "C:\\Users\\Gabriele.Dolfi\\Source\\Repos\\netoru\\SyosetuScraper\\SyosetuScraper.csproj",
       "projectName": "SyosetuScraper",
-      "projectPath": "E:\\OneDrive - F.lli Polli Spa\\_Documents\\Visual Studio\\Projects\\SyosetuScraper\\SyosetuScraper.csproj",
-      "packagesPath": "C:\\Users\\Kiyuta\\.nuget\\packages\\",
-      "outputPath": "E:\\OneDrive - F.lli Polli Spa\\_Documents\\Visual Studio\\Projects\\SyosetuScraper\\obj\\",
+      "projectPath": "C:\\Users\\Gabriele.Dolfi\\Source\\Repos\\netoru\\SyosetuScraper\\SyosetuScraper.csproj",
+      "packagesPath": "C:\\Users\\Gabriele.Dolfi\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Gabriele.Dolfi\\Source\\Repos\\netoru\\SyosetuScraper\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+      ],
       "configFilePaths": [
-        "C:\\Users\\Kiyuta\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "C:\\Users\\Gabriele.Dolfi\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "netcoreapp3.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {

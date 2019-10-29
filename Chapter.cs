@@ -24,12 +24,6 @@ namespace SyosetuScraper
 
         private HtmlNodeCollection _footnotes;
 
-
-        //public List<string> Text { get; private set; }
-        //public List<string> AuthorNote { get; private set; }
-
-
-
         public Chapter(int getId, int getNumber, string getName, string getLink) => (Id, Number, Name, Link) = (getId, getNumber, getName, getLink);
 
         public void CheckValidity()
@@ -75,8 +69,7 @@ namespace SyosetuScraper
             if (aLineNodes == null)
                 return;
 
-            var node = new HtmlNode(HtmlNodeType.Element, _doc, 0) { Id = "La0", Name = "p",
-                InnerHtml = "================Author Note================" };
+            var node = HtmlNode.CreateNode("<p id=\"La0\">================Author Note================</p>");
             aLineNodes.Insert(0, node);
 
             DivideInPages(aLineNodes, ref chk, ref pageIndex);
@@ -114,69 +107,32 @@ namespace SyosetuScraper
 
         private string Furigana(HtmlNode node)
         {
-            //a node with html furigana can be like this (Pages[0]["L58"]):
-            //　<ruby><rb>違</rb><rp>(</rp><rt>・</rt><rp>)</rp></ruby><ruby><rb>う</rb><rp>(</rp><rt>・</rt><rp>)</rp></ruby>と、勇二自身分かっていた。
-
-            //the following would be its InnerText value:
-            //　違(・)う(・)と、勇二自身分かっていた。
-
-            //it would be better if it was like this:
-            //そこにいる男(・・・・・・)
-
-            //would using regex be the best way?
-
-            //maybe like so:
-            //identify all furigana by searching for \(.+\)
-            //extract and concatenate them, resulting in two strings: "そこにいる男" and "(・)(・)(・)(・)(・)(・)"
-            //remove the excess parenthesis and the concatenate again to end up with: "そこにいる男(・・・・・・)"
-
-            /*tests:
-            line = "そ(・)こ(・)に(・)い(・)る(・)男(・)";
-            line = "そ(so)こ(ko) に(ni) い(i)る(ru) 男(otoko)";
-            line = "そ(aaa)こ(bbb)+に(ccc)い(ddd)             る(eee)男(fff)";
-            line = "そ(a)こ(b)に(c)い(!)る(e)";
-            line = "そe)";
-            line = "そこにいる男(・・・・・・)";
-            */
-
-
-
-            var line = node.InnerText;
-            var furi = "";
-            var pattern = "\\(.*?\\)";
-            var matches = Regex.Matches(line, pattern);
-
-            foreach (var match in matches)
+            if (_footnotes.Count == 0)
             {
-                furi += match.ToString();
-                line = line.Replace(match.ToString(), "");
+                var firstNode = HtmlNode.CreateNode("<p id=\"Lf0\">================Footnotes================</p>");
+
+                _footnotes.Add(firstNode);
             }
 
-            //this is wrong as it's appended at the end
-            //line += furi.Replace(")(", "");
-            //resulting in
-            //「お、おいっ。綾っ！聞こえてるだろ、そこにいる男も、お、おい――!?」(・・・・・・)
-            //instead of
-            //「お、おいっ。綾っ！聞こえてるだろ、そこにいる男(・・・・・・)も、お、おい――!?」
+            var sub = Regex.Match(node.InnerHtml, "<ruby>(.*)</ruby>").Value;
+            var kMatches = Regex.Matches(sub, "<rb>(.*?)</rb>");
+            var fMatches = Regex.Matches(sub, "<rt>(.*?)</rt>");
 
-            //would it then be better to add them as footnotes?
-            //as in, append [x], {x}, etc. or nothing at the end of the line
-            //「お、おいっ。綾っ！聞こえてるだろ、そこにいる男も、お、おい――!?」{1}
-            //then after the author note add a footnotes section
-            //================Footnotes================
-            //{1} そこにいる男: ・・・・・・
-            //or
-            //================Footnotes================
-            //Line: 「お、おいっ。綾っ！聞こえてるだろ、そこにいる男も、お、おい――!?」
-            //Furigana: そこにいる男(・・・・・・)
-            //or
-            //================Footnotes================
-            //「お、おいっ。綾っ！聞こえてるだろ、そこにいる男も、お、おい――!?」
-            //そこにいる男
-            //・・・・・・
-            //third mode seems better, just have to make sure 
-            //to put some space between each footnote
-            //like, add two Env.NewLine in-between each
+            var kanji = "";
+            var furigana = "";
+
+            foreach (var kMatch in kMatches.Where(kMatch => kMatch.Groups.Count > 1))            
+                kanji += kMatch.Groups[1].Value;
+
+            foreach (var fMatch in fMatches.Where(fMatch => fMatch.Groups.Count > 1))
+                furigana += fMatch.Groups[1].Value;
+
+            var line = node.InnerHtml.Replace(sub, kanji);
+
+            _footnotes.Add(HtmlNode.CreateNode($"<p id=\"{node.Id}L\">{line}</p>"));
+            _footnotes.Add(HtmlNode.CreateNode($"<p id=\"{node.Id}K\">{kanji}</p>"));
+            _footnotes.Add(HtmlNode.CreateNode($"<p id=\"{node.Id}F\">{furigana}</p>"));
+            _footnotes.Add(HtmlNode.CreateNode($"<p id=\"{node.Id}E\"></p>"));
 
             return line;
         }
@@ -192,7 +148,7 @@ namespace SyosetuScraper
 
                 if (node.InnerHtml.Contains("<img"))
                 {
-                    var img = GetImage(node);
+                    Image img = GetImage(node);
 
                     if (img == null)
                         line = "================Unable to download image================";
@@ -202,10 +158,8 @@ namespace SyosetuScraper
                         Images.Add(node.Id, img);
                     }
                 }
-                else if (node.InnerHtml.Contains("<ruby>"))
-                {
-                    line = Furigana(node);
-                }
+                else if (node.InnerHtml.Contains("<ruby>"))                
+                    line = Furigana(node);                
                 else                
                     line = node.InnerText;                
 
@@ -233,6 +187,22 @@ namespace SyosetuScraper
             txt.AppendLine();
             txt.AppendLine();
             //txt.AppendLine(Text);
+
+            return txt.ToString();
+        }
+        public string ToString(int page)
+        {
+            if (!Pages.ContainsKey(page))
+                return "";
+
+            var txt = new StringBuilder();
+
+            txt.AppendLine($"{Id}-{page}. {Name}");
+            txt.AppendLine();
+            txt.AppendLine();
+
+            foreach (var line in Pages[page])
+                txt.AppendLine(line.Value);            
 
             return txt.ToString();
         }

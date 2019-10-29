@@ -27,13 +27,29 @@ namespace SyosetuScraper
                 _novels.Add(new Novel(url, toc));
             }*/
             _novels.Add(new Novel(urlCollection[4], GetPage(urlCollection[4], SyousetsuCookie)));
+
+            foreach (var volume in _novels[0].Volumes)
+            {
+                foreach (var chapter in volume.Chapters)
+                {
+                    chapter.CheckValidity();
+
+                    if (chapter.Valid)
+                        chapter.GetChapter();
+                }
+            }
+            /*
             _novels[0].Volumes[1].Chapters[2].CheckValidity();
 
             if (_novels[0].Volumes[1].Chapters[2].Valid)
                 _novels[0].Volumes[1].Chapters[2].GetChapter();
+            */
+            Save(_novels[0], false);
 
             /*foreach (var novel in _novels)            
                 Save(novel, false);*/
+
+            Console.WriteLine("Download complete.");
         }
 
         private static void GenerateCookies()
@@ -124,17 +140,20 @@ namespace SyosetuScraper
 
                 foreach (var chapter in volume.Chapters)
                 {
-                    var chapterPath = volPath + $"\\{chapter.Id} - {CheckChars(chapter.Name)}.txt";
-
-                    if (!File.Exists(chapterPath))
+                    foreach (var page in chapter.Pages)
                     {
-                        TextWriter tw = new StreamWriter(chapterPath);
-                        tw.WriteLine(chapter.ToString());
-                        tw.Close();
+                        var chapterPath = volPath + $"\\{chapter.Id}-{page.Key} - {CheckChars(chapter.Name)}.txt";
+
+                        if (!File.Exists(chapterPath))
+                        {
+                            TextWriter tw = new StreamWriter(chapterPath);
+                            tw.WriteLine(chapter.ToString(page.Key));
+                            tw.Close();
+                        }
+                        else if (File.Exists(chapterPath))
+                            using (var tw = new StreamWriter(chapterPath, false))
+                                tw.WriteLine(chapter.ToString());
                     }
-                    else if (File.Exists(chapterPath))
-                        using (var tw = new StreamWriter(chapterPath, false))
-                            tw.WriteLine(chapter.ToString());
                 }
             }
         }

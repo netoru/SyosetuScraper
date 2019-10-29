@@ -26,3 +26,17 @@ E:\OneDrive - F.lli Polli Spa\_Documents\Visual Studio\Projects\SyosetuScraper\o
 E:\OneDrive - F.lli Polli Spa\_Documents\Visual Studio\Projects\SyosetuScraper\obj\Debug\netcoreapp3.0\SyosetuScraper.dll
 E:\OneDrive - F.lli Polli Spa\_Documents\Visual Studio\Projects\SyosetuScraper\obj\Debug\netcoreapp3.0\SyosetuScraper.pdb
 E:\OneDrive - F.lli Polli Spa\_Documents\Visual Studio\Projects\SyosetuScraper\obj\Debug\netcoreapp3.0\SyosetuScraper.csprojAssemblyReference.cache
+C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\bin\Debug\netcoreapp3.0\SyosetuScraper.exe
+C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\bin\Debug\netcoreapp3.0\SyosetuScraper.deps.json
+C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\bin\Debug\netcoreapp3.0\SyosetuScraper.runtimeconfig.json
+C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\bin\Debug\netcoreapp3.0\SyosetuScraper.runtimeconfig.dev.json
+C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\bin\Debug\netcoreapp3.0\SyosetuScraper.dll
+C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\bin\Debug\netcoreapp3.0\SyosetuScraper.pdb
+C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\bin\Debug\netcoreapp3.0\HtmlAgilityPack.dll
+C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\bin\Debug\netcoreapp3.0\System.Xml.XPath.XmlDocument.dll
+C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\obj\Debug\netcoreapp3.0\SyosetuScraper.csprojAssemblyReference.cache
+C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\obj\Debug\netcoreapp3.0\SyosetuScraper.AssemblyInfoInputs.cache
+C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\obj\Debug\netcoreapp3.0\SyosetuScraper.AssemblyInfo.cs
+C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\obj\Debug\netcoreapp3.0\SyosetuScraper.csproj.CopyComplete
+C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\obj\Debug\netcoreapp3.0\SyosetuScraper.dll
+C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\obj\Debug\netcoreapp3.0\SyosetuScraper.pdb

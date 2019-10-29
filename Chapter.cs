@@ -24,12 +24,6 @@ namespace SyosetuScraper
 
         private HtmlNodeCollection _footnotes;
 
-
-        //public List<string> Text { get; private set; }
-        //public List<string> AuthorNote { get; private set; }
-
-
-
         public Chapter(int getId, int getNumber, string getName, string getLink) => (Id, Number, Name, Link) = (getId, getNumber, getName, getLink);
 
         public void CheckValidity()
@@ -75,8 +69,7 @@ namespace SyosetuScraper
             if (aLineNodes == null)
                 return;
 
-            var node = new HtmlNode(HtmlNodeType.Element, _doc, 0) { Id = "La0", Name = "p",
-                InnerHtml = "================Author Note================" };
+            var node = HtmlNode.CreateNode("<p id=\"La0\">================Author Note================</p>");
             aLineNodes.Insert(0, node);
 
             DivideInPages(aLineNodes, ref chk, ref pageIndex);
@@ -116,10 +109,9 @@ namespace SyosetuScraper
         {
             if (_footnotes.Count == 0)
             {
-                var fNode = new HtmlNode(HtmlNodeType.Element, _doc, 0) { Id = "Lf0", Name = "p",
-                    InnerHtml = "================Footnotes================" };
+                var firstNode = HtmlNode.CreateNode("<p id=\"Lf0\">================Footnotes================</p>");
 
-                _footnotes.Add(fNode);
+                _footnotes.Add(firstNode);
             }
 
             var sub = Regex.Match(node.InnerHtml, "<ruby>(.*)</ruby>").Value;
@@ -135,26 +127,14 @@ namespace SyosetuScraper
             foreach (var fMatch in fMatches.Where(fMatch => fMatch.Groups.Count > 1))
                 furigana += fMatch.Groups[1].Value;
 
-            //would it then be better to add them as footnotes?
-            //as in, append [x], {x}, etc. or nothing at the end of the line
-            //「お、おいっ。綾っ！聞こえてるだろ、そこにいる男も、お、おい――!?」{1}
-            //then after the author note add a footnotes section
-            //================Footnotes================
-            //{1} そこにいる男: ・・・・・・
-            //or
-            //================Footnotes================
-            //Line: 「お、おいっ。綾っ！聞こえてるだろ、そこにいる男も、お、おい――!?」
-            //Furigana: そこにいる男(・・・・・・)
-            //or
-            //================Footnotes================
-            //「お、おいっ。綾っ！聞こえてるだろ、そこにいる男も、お、おい――!?」
-            //そこにいる男
-            //・・・・・・
-            //third mode seems better, just have to make sure 
-            //to put some space between each footnote
-            //like, add two Env.NewLine in-between each
+            var line = node.InnerHtml.Replace(sub, kanji);
 
-            return node.InnerHtml.Replace(sub, kanji);
+            _footnotes.Add(HtmlNode.CreateNode($"<p id=\"{node.Id}L\">{line}</p>"));
+            _footnotes.Add(HtmlNode.CreateNode($"<p id=\"{node.Id}K\">{kanji}</p>"));
+            _footnotes.Add(HtmlNode.CreateNode($"<p id=\"{node.Id}F\">{furigana}</p>"));
+            _footnotes.Add(HtmlNode.CreateNode($"<p id=\"{node.Id}E\"></p>"));
+
+            return line;
         }
 
         private void DivideInPages(HtmlNodeCollection nodeCollection, ref int chk, ref int pageIndex)
@@ -168,7 +148,7 @@ namespace SyosetuScraper
 
                 if (node.InnerHtml.Contains("<img"))
                 {
-                    Image img = null; // GetImage(node);
+                    Image img = GetImage(node);
 
                     if (img == null)
                         line = "================Unable to download image================";
@@ -178,10 +158,8 @@ namespace SyosetuScraper
                         Images.Add(node.Id, img);
                     }
                 }
-                else if (node.InnerHtml.Contains("<ruby>"))
-                {
-                    line = Furigana(node);
-                }
+                else if (node.InnerHtml.Contains("<ruby>"))                
+                    line = Furigana(node);                
                 else                
                     line = node.InnerText;                
 
@@ -209,6 +187,22 @@ namespace SyosetuScraper
             txt.AppendLine();
             txt.AppendLine();
             //txt.AppendLine(Text);
+
+            return txt.ToString();
+        }
+        public string ToString(int page)
+        {
+            if (!Pages.ContainsKey(page))
+                return "";
+
+            var txt = new StringBuilder();
+
+            txt.AppendLine($"{Id}-{page}. {Name}");
+            txt.AppendLine();
+            txt.AppendLine();
+
+            foreach (var line in Pages[page])
+                txt.AppendLine(line.Value);            
 
             return txt.ToString();
         }

@@ -122,5 +122,63 @@ namespace SyosetuScraper
 
             return txt.ToString();
         }
+
+        
+        //instead of being here, consider moving save to the Novel class
+        private Task Save(bool CreateFoldersForEachVolume = true)
+        {
+            //add handling to save somewhere else
+            string path = _savePath + novel.Type + "\\" + CheckChars(novel.Name);
+            Directory.CreateDirectory(path);
+
+            var indexPath = path + "\\_Index.txt";
+            if (!File.Exists(indexPath))
+            {
+                TextWriter tw = new StreamWriter(indexPath);
+                tw.WriteLine(novel.ToString());
+                tw.Close();
+            }
+            else if (File.Exists(indexPath))
+                using (var tw = new StreamWriter(indexPath, false))
+                    tw.WriteLine(novel.ToString());
+
+            foreach (var volume in novel.Volumes)
+            {
+                var volPath = path;
+
+                if (CreateFoldersForEachVolume)
+                    if (!string.IsNullOrEmpty(volume.Name))
+                    {
+                        volPath += $"\\{volume.Number} - {CheckChars(volume.Name)}";
+                        Directory.CreateDirectory(volPath);
+                    }
+
+                foreach (var chapter in volume.Chapters)
+                {
+                    foreach (var page in chapter.Pages)
+                    {
+                        var chapterPath = volPath + $"\\{chapter.Id}-{page.Key} - {CheckChars(chapter.Name)}.txt";
+
+                        if (!File.Exists(chapterPath))
+                        {
+                            TextWriter tw = new StreamWriter(chapterPath);
+                            tw.WriteLine(chapter.ToString(page.Key));
+                            tw.Close();
+                        }
+                        else if (File.Exists(chapterPath))
+                            using (var tw = new StreamWriter(chapterPath, false))
+                                tw.WriteLine(chapter.ToString());
+                    }
+                }
+            }
+        }
+
+        private static string CheckChars(string input)
+        {
+            //Check for illegal characters
+            string regexSearch = new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars());
+            var r = new Regex(string.Format("[{0}]", Regex.Escape(regexSearch)));
+            return r.Replace(input, "□");
+        }
     }
 }

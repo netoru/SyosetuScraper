@@ -37,7 +37,7 @@ namespace SyosetuScraper
             Trace.WriteLine("4");
             Description = await SearchDocAsync("//div[@id='novel_ex']");
             Trace.WriteLine("5");
-            //await GetDetailsAsync();
+            //await Task.Run(GetDetailsAsync); //why does this get stuck :(
             Trace.WriteLine("6");
             //await GetNovelAsync();
             Trace.WriteLine("7");
@@ -47,13 +47,12 @@ namespace SyosetuScraper
         {
             var resNode = _doc.DocumentNode.SelectSingleNode(xpath);//await Task.Run(() => )
             var result = (resNode == null) ? "エラー" : resNode.InnerText.TrimStart().TrimEnd();//.Replace(repl, repWith)
-
             return result;
         }
 
         private async Task GetDetailsAsync()
         {
-            var groups = await Task.Run(() => Regex.Match(Link, @".+\/(\w+)\.syosetu\.com\/(\w+)\/").Groups);
+            var groups = Regex.Match(Link, @".+\/(\w+)\.syosetu\.com\/(\w+)\/").Groups;
 
             try
             {

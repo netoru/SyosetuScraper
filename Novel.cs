@@ -18,25 +18,23 @@ namespace SyosetuScraper
         public string Author { get; private set; }
         public string Description { get; private set; }
         public string Type { get; private set; }
-        public string Link { get; }
-        public List<Volume> Volumes { get; } = new List<Volume>();
-        private HtmlDocument _doc { get; set; }
+        public string Link { get; private set; }
+        public List<Volume> Volumes { get; private set; }
+        public HtmlDocument _doc { get; private set; }
         public bool IsValid => (Name != "エラー") ? true : false;
         public string TableOfContents => GetToC();
 
         public Novel(string getLink, HtmlDocument getDoc) => (Link, _doc) = (getLink, getDoc);
 
-        public async Task SetupAsync()
+        public void Setup()
         {
-            Trace.WriteLine("1");
-            Name = await SearchDocAsync("//p[@class='novel_title']");
-            Trace.WriteLine("2");
-            Series = await SearchDocAsync("//p[@class='series_title']");
-            Trace.WriteLine("3");
-            Author = await SearchDocAsync("//div[@class='novel_writername']", true);
-            Trace.WriteLine("4");
-            Description = await SearchDocAsync("//div[@id='novel_ex']");
-            Trace.WriteLine("5");
+            Volumes = new List<Volume>();
+
+            Name = SearchDoc("//p[@class='novel_title']");
+            Series = SearchDoc("//p[@class='series_title']");
+            Author = SearchDoc("//div[@class='novel_writername']", true);
+            Description = SearchDoc("//div[@id='novel_ex']");
+
             var groups = Regex.Match(Link, @".+\/(\w+)\.syosetu\.com\/(\w+)\/").Groups;
 
             try
@@ -48,14 +46,11 @@ namespace SyosetuScraper
             {
                 throw;
             }
-            Trace.WriteLine("6");
-            //this gets stuck because the foreach returns void
-            //just read it a while ago and i already forgot it lololol
-            //await GetNovelAsync();
-            Trace.WriteLine("7");
+
+            GetNovel();
         }
 
-        private async Task<string> SearchDocAsync(string xpath, bool repStr = false, string oldStr = "作者：", string newStr = "")
+        private string SearchDoc(string xpath, bool repStr = false, string oldStr = "作者：", string newStr = "")
         {
             var resNode = _doc.DocumentNode.SelectSingleNode(xpath);//await Task.Run(() => )
             var result = (resNode == null) ? "エラー" : resNode.InnerText.TrimStart().TrimEnd();
@@ -63,12 +58,7 @@ namespace SyosetuScraper
             return result;
         }
 
-        private async Task GetDetailsAsync()
-        {
-            
-        }
-
-        private async Task GetNovelAsync()
+        private void GetNovel()
         {
             var indexNode = _doc.DocumentNode.SelectNodes("//div[@class='index_box']");
 
@@ -77,7 +67,7 @@ namespace SyosetuScraper
 
             var nodes = indexNode.First().ChildNodes
                 .Where(n => n.Name == "div" || n.Name == "dl").ToList();
-
+            
             for (int i = 0; i < nodes.Count; i++)
             {
                 if (nodes[i] == null)
@@ -92,16 +82,14 @@ namespace SyosetuScraper
             if (Volumes.Count == 0)
                 Volumes.Add(new Volume(-1, -1, string.Empty, Link));
 
-            await Task.Run(() => {
-                foreach (var item in Volumes)
-                {
-                    var current = Volumes.IndexOf(item);
-                    var isLast = current == Volumes.Count() - 1;
-                    var indexFrom = item.Id + 1;
-                    var indexTo = isLast ? nodes.Count() - indexFrom : Volumes[current + 1].Id - indexFrom;
-                    item.GetVolume(nodes.GetRange(indexFrom, indexTo));
-                }
-            });
+            foreach (var item in Volumes)
+            {
+                var current = Volumes.IndexOf(item);
+                var isLast = current == Volumes.Count() - 1;
+                var indexFrom = item.Id + 1;
+                var indexTo = isLast ? nodes.Count() - indexFrom : Volumes[current + 1].Id - indexFrom;
+                item.GetVolume(nodes.GetRange(indexFrom, indexTo));
+            }
         }
 
         private string GetToC()
@@ -132,10 +120,8 @@ namespace SyosetuScraper
             return txt.ToString();
         }
 
-        
         public void Save(bool CreateFoldersForEachVolume = true)
         {
-            //add handling to save somewhere else
             string path = Scraping.SavePath + Type + "\\" + CheckChars(Name);
             Directory.CreateDirectory(path);
 
@@ -150,38 +136,11 @@ namespace SyosetuScraper
                 using (var tw = new StreamWriter(indexPath, false))
                     tw.WriteLine(ToString());
 
-            foreach (var volume in Volumes)
-            {
-                var volPath = path;
-
-                if (CreateFoldersForEachVolume)
-                    if (!string.IsNullOrEmpty(volume.Name))
-                    {
-                        volPath += $"\\{volume.Number} - {CheckChars(volume.Name)}";
-                        Directory.CreateDirectory(volPath);
-                    }
-
-                foreach (var chapter in volume.Chapters)
-                {
-                    foreach (var page in chapter.Pages)
-                    {
-                        var chapterPath = volPath + $"\\{chapter.Id}-{page.Key} - {CheckChars(chapter.Name)}.txt";
-
-                        if (!File.Exists(chapterPath))
-                        {
-                            TextWriter tw = new StreamWriter(chapterPath);
-                            tw.WriteLine(chapter.ToString(page.Key));
-                            tw.Close();
-                        }
-                        else if (File.Exists(chapterPath))
-                            using (var tw = new StreamWriter(chapterPath, false))
-                                tw.WriteLine(chapter.ToString());
-                    }
-                }
-            }
+            foreach (var volume in Volumes)            
+                volume.Save(path, CreateFoldersForEachVolume);            
         }
 
-        private static string CheckChars(string input)
+        public static string CheckChars(string input)
         {
             //Check for illegal characters
             string regexSearch = new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars());

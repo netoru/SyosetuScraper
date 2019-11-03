@@ -20,28 +20,11 @@ namespace SyosetuScraper
             GenerateCookies();
 
             _novels.Add(new Novel(urlCollection[4], GetPage(urlCollection[4], SyousetsuCookie)));
+            
+            _novels[0].Setup();
 
-            Trace.WriteLine("A");
-            Trace.WriteLine("B");
-            var no = _novels[0].SetupAsync();
-            Trace.WriteLine("C");
-            Trace.WriteLine("D");
-            Trace.WriteLine("E");
-            no.Wait();
-            /*
-            foreach (var volume in _novels[0].Volumes)
-            {
-                foreach (var chapter in volume.Chapters)
-                {
-                    chapter.CheckValidity();
-
-                    if (chapter.Valid)
-                        chapter.GetChapter();
-                }
-            }
-
-            _novels[0].Save(false);
-            */
+            _novels[0].Save();
+            
             Trace.WriteLine("Download complete.");
         }
 

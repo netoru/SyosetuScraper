@@ -1,6 +1,7 @@
 ﻿using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -19,10 +20,9 @@ namespace SyosetuScraper
 
         public void GetVolume(List<HtmlNode> list)
         {
-            var i = 1;
-            foreach (var item in list)
+            for (int i = 0; i < list.Count; i++)
             {
-                var chapterNode = item.ChildNodes
+                var chapterNode = list[i].ChildNodes
                     .Where(n => n.Name == "dd").First()
                     .ChildNodes.Where(n => n.Name == "a")
                     .First();
@@ -37,8 +37,15 @@ namespace SyosetuScraper
                 if (!res)
                     continue;
 
-                Chapters.Add(new Chapter(chapterId, i, chapterNode.InnerText, _link + chapterId + "/"));
-                i++;
+                Chapters.Add(new Chapter(chapterId, i + 1, chapterNode.InnerText, _link + chapterId + "/"));
+            }
+
+            foreach (var chapter in Chapters)
+            {
+                chapter.CheckValidity();
+
+                if (chapter.Valid)
+                    chapter.GetChapter();
             }
         }
 
@@ -59,6 +66,19 @@ namespace SyosetuScraper
                 txt.AppendLine(indent + chapter.Id + ". " + chapter.Name);
 
             return txt.ToString();
+        }
+
+        public void Save(string path, bool CreateFoldersForEachVolume)
+        {
+            if (CreateFoldersForEachVolume)
+                if (!string.IsNullOrEmpty(Name))
+                {
+                    path += $"\\{Number} - {Novel.CheckChars(Name)}";
+                    Directory.CreateDirectory(path);
+                }
+
+            foreach (var chapter in Chapters)
+                chapter.Save(path);
         }
     }
 }

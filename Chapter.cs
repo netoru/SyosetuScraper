@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -18,7 +19,7 @@ namespace SyosetuScraper
         public string Link { get; }
         public NestDictionary<int, string, string> Pages { get; } = new NestDictionary<int, string, string>();
         public bool Valid { get; private set; } = false;
-        public Dictionary<string, Image> Images { get; } = new Dictionary<string, Image>();
+        public NestDictionary<int, string, Image> Images { get; } = new NestDictionary<int, string, Image>();
 
         private HtmlDocument _doc;
 
@@ -73,6 +74,11 @@ namespace SyosetuScraper
             aLineNodes.Insert(0, node);
 
             DivideInPages(aLineNodes, ref chk, ref pageIndex);
+
+            if (_footnotes == null)
+                return;
+            
+            DivideInPages(_footnotes, ref chk, ref pageIndex);
         }
 
         private Image GetImage(HtmlNode node)
@@ -141,6 +147,8 @@ namespace SyosetuScraper
         {
             if (!Pages.ContainsKey(pageIndex))
                 Pages[pageIndex] = Pages.New();
+            if (!Images.ContainsKey(pageIndex))
+                Images[pageIndex] = Images.New();
 
             foreach (var node in nodeCollection)
             {
@@ -155,7 +163,7 @@ namespace SyosetuScraper
                     else
                     {
                         line = $"================Image {Id}-{node.Id}================";
-                        Images.Add(node.Id, img);
+                        Images[pageIndex][node.Id] = img;
                     }
                 }
                 else if (node.InnerHtml.Contains("<ruby>"))                
@@ -173,23 +181,14 @@ namespace SyosetuScraper
 
                     if (!Pages.ContainsKey(pageIndex))
                         Pages[pageIndex] = Pages.New();
+                    if (!Images.ContainsKey(pageIndex))
+                        Images[pageIndex] = Images.New();
                 }
 
                 Pages[pageIndex][node.Id] = line;
             }
         }
 
-        public override string ToString()
-        {
-            var txt = new StringBuilder();
-
-            txt.AppendLine(Id + ". " + Name);
-            txt.AppendLine();
-            txt.AppendLine();
-            //txt.AppendLine(Text);
-
-            return txt.ToString();
-        }
         public string ToString(int page)
         {
             if (!Pages.ContainsKey(page))
@@ -197,7 +196,7 @@ namespace SyosetuScraper
 
             var txt = new StringBuilder();
 
-            txt.AppendLine($"{Id}-{page}. {Name}");
+            txt.AppendLine(Name);
             txt.AppendLine();
             txt.AppendLine();
 
@@ -205,6 +204,34 @@ namespace SyosetuScraper
                 txt.AppendLine(line.Value);            
 
             return txt.ToString();
+        }
+
+        public void Save(string path)
+        {
+            foreach (var page in Pages)
+            {
+                var chapterPath = path + $"\\{Id}-{page.Key} - {Novel.CheckChars(Name)}.txt";
+
+                if (!File.Exists(chapterPath))
+                {
+                    TextWriter tw = new StreamWriter(chapterPath);
+                    tw.WriteLine(ToString(page.Key));
+                    tw.Close();
+                }
+                else if (File.Exists(chapterPath))
+                    using (var tw = new StreamWriter(chapterPath, false))
+                        tw.WriteLine(ToString(page.Key));
+            }
+
+
+            foreach (var page in Images)
+            {
+                foreach (var image in page.Value)
+                {
+                    var imagePath = path + $"\\{Id}-{page.Key}-{image.Key}.png";
+                    image.Value.Save(imagePath, ImageFormat.Png);
+                }
+            }
         }
     }
 

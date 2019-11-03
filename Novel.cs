@@ -33,25 +33,10 @@ namespace SyosetuScraper
             Trace.WriteLine("2");
             Series = await SearchDocAsync("//p[@class='series_title']");
             Trace.WriteLine("3");
-            Author = await SearchDocAsync("//div[@class='novel_writername']", "作者：");
+            Author = await SearchDocAsync("//div[@class='novel_writername']", true);
             Trace.WriteLine("4");
             Description = await SearchDocAsync("//div[@id='novel_ex']");
             Trace.WriteLine("5");
-            //await Task.Run(GetDetailsAsync); //why does this get stuck :(
-            Trace.WriteLine("6");
-            //await GetNovelAsync();
-            Trace.WriteLine("7");
-        }
-
-        private async Task<string> SearchDocAsync(string xpath, string repl = "", string repWith = "")
-        {
-            var resNode = _doc.DocumentNode.SelectSingleNode(xpath);//await Task.Run(() => )
-            var result = (resNode == null) ? "エラー" : resNode.InnerText.TrimStart().TrimEnd();//.Replace(repl, repWith)
-            return result;
-        }
-
-        private async Task GetDetailsAsync()
-        {
             var groups = Regex.Match(Link, @".+\/(\w+)\.syosetu\.com\/(\w+)\/").Groups;
 
             try
@@ -63,6 +48,24 @@ namespace SyosetuScraper
             {
                 throw;
             }
+            Trace.WriteLine("6");
+            //this gets stuck because the foreach returns void
+            //just read it a while ago and i already forgot it lololol
+            //await GetNovelAsync();
+            Trace.WriteLine("7");
+        }
+
+        private async Task<string> SearchDocAsync(string xpath, bool repStr = false, string oldStr = "作者：", string newStr = "")
+        {
+            var resNode = _doc.DocumentNode.SelectSingleNode(xpath);//await Task.Run(() => )
+            var result = (resNode == null) ? "エラー" : resNode.InnerText.TrimStart().TrimEnd();
+            result = repStr ? result.Replace(oldStr, newStr) : result;
+            return result;
+        }
+
+        private async Task GetDetailsAsync()
+        {
+            
         }
 
         private async Task GetNovelAsync()

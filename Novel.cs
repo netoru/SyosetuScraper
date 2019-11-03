@@ -1,9 +1,12 @@
 ﻿using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace SyosetuScraper
 {
@@ -16,55 +19,56 @@ namespace SyosetuScraper
         public string Description { get; private set; }
         public string Type { get; private set; }
         public string Link { get; }
-        public string TableOfContents => GetToC();
         public List<Volume> Volumes { get; } = new List<Volume>();
-
+        private HtmlDocument _doc { get; set; }
         public bool IsValid => (Name != "エラー") ? true : false;
+        public string TableOfContents => GetToC();
 
-        public Novel(string link, HtmlDocument doc)
+        public Novel(string getLink, HtmlDocument getDoc) => (Link, _doc) = (getLink, getDoc);
+
+        public async Task SetupAsync()
         {
-            Link = link;
-            Name = GetName(doc);
-
-            if (!IsValid)
-                return;
-
-            var details = GetDetailsAsync(doc);
-            var novel = GetNovelAsync(doc);
-
-            details.Wait();
-            novel.Wait();
+            Trace.WriteLine("1");
+            Name = await SearchDocAsync("//p[@class='novel_title']");
+            Trace.WriteLine("2");
+            Series = await SearchDocAsync("//p[@class='series_title']");
+            Trace.WriteLine("3");
+            Author = await SearchDocAsync("//div[@class='novel_writername']", "作者：");
+            Trace.WriteLine("4");
+            Description = await SearchDocAsync("//div[@id='novel_ex']");
+            Trace.WriteLine("5");
+            //await GetDetailsAsync();
+            Trace.WriteLine("6");
+            //await GetNovelAsync();
+            Trace.WriteLine("7");
         }
 
-        private static string GetName(HtmlDocument doc)
+        private async Task<string> SearchDocAsync(string xpath, string repl = "", string repWith = "")
         {
-            var nameNode = doc.DocumentNode.SelectSingleNode("//p[@class='novel_title']");
-            return (nameNode == null) ? "エラー" : nameNode.InnerText.TrimStart().TrimEnd();
+            var resNode = _doc.DocumentNode.SelectSingleNode(xpath);//await Task.Run(() => )
+            var result = (resNode == null) ? "エラー" : resNode.InnerText.TrimStart().TrimEnd();//.Replace(repl, repWith)
+
+            return result;
         }
 
-        private async Task GetDetailsAsync(HtmlDocument doc)
+        private async Task GetDetailsAsync()
         {
-            var seriesNode = doc.DocumentNode.SelectSingleNode("//p[@class='series_title']");
-            Series = (seriesNode == null) ? string.Empty : seriesNode.InnerText.TrimStart().TrimEnd();
+            var groups = await Task.Run(() => Regex.Match(Link, @".+\/(\w+)\.syosetu\.com\/(\w+)\/").Groups);
 
-            var authorNode = doc.DocumentNode.SelectSingleNode("//div[@class='novel_writername']");
-            Author = (authorNode == null) ? string.Empty : authorNode.InnerText.TrimStart().TrimEnd().Replace("作者：", "");
-
-            var descriptionNode = doc.DocumentNode.SelectSingleNode("//div[@id='novel_ex']");
-            Description = (descriptionNode == null) ? string.Empty : descriptionNode.InnerText.TrimStart().TrimEnd();
-
-            var groups = Regex.Match(Link, @".+\/(\w+)\.syosetu\.com\/(\w+)\/").Groups;
-
-            if (groups.Count != 3)
-                return;
-
-            Type = groups[1].Value;
-            Id = groups[2].Value;
+            try
+            {
+                Type = groups[1].Value;
+                Id = groups[2].Value;
+            }
+            catch (IndexOutOfRangeException)
+            {
+                throw;
+            }
         }
 
-        private async Task GetNovelAsync(HtmlDocument doc)
+        private async Task GetNovelAsync()
         {
-            var indexNode = doc.DocumentNode.SelectNodes("//div[@class='index_box']");
+            var indexNode = _doc.DocumentNode.SelectNodes("//div[@class='index_box']");
 
             if (indexNode == null)
                 return;
@@ -72,30 +76,30 @@ namespace SyosetuScraper
             var nodes = indexNode.First().ChildNodes
                 .Where(n => n.Name == "div" || n.Name == "dl").ToList();
 
-            var i = 1;
-            foreach (var node in nodes)
+            for (int i = 0; i < nodes.Count; i++)
             {
-                if (node == null)
+                if (nodes[i] == null)
                     continue;
-                if (node.Name == "dl")
+                if (nodes[i].Name == "dl")
                     continue;
-                var volName = node.InnerText.TrimStart().TrimEnd();
-                var volIndex = nodes.IndexOf(node);
+                var volName = nodes[i].InnerText.TrimStart().TrimEnd();
+                var volIndex = nodes.IndexOf(nodes[i]);
                 Volumes.Add(new Volume(volIndex, i, volName, Link));
-                i++;
             }
 
             if (Volumes.Count == 0)
                 Volumes.Add(new Volume(-1, -1, string.Empty, Link));
 
-            foreach (var item in Volumes)
-            {
-                var current = Volumes.IndexOf(item);
-                var isLast = current == Volumes.Count() - 1;
-                var indexFrom = item.Id + 1;
-                var indexTo = isLast ? nodes.Count() - indexFrom : Volumes[current + 1].Id - indexFrom;
-                item.GetVolume(nodes.GetRange(indexFrom, indexTo));
-            }
+            await Task.Run(() => {
+                foreach (var item in Volumes)
+                {
+                    var current = Volumes.IndexOf(item);
+                    var isLast = current == Volumes.Count() - 1;
+                    var indexFrom = item.Id + 1;
+                    var indexTo = isLast ? nodes.Count() - indexFrom : Volumes[current + 1].Id - indexFrom;
+                    item.GetVolume(nodes.GetRange(indexFrom, indexTo));
+                }
+            });
         }
 
         private string GetToC()
@@ -127,25 +131,24 @@ namespace SyosetuScraper
         }
 
         
-        //instead of being here, consider moving save to the Novel class
-        private Task Save(bool CreateFoldersForEachVolume = true)
+        public void Save(bool CreateFoldersForEachVolume = true)
         {
             //add handling to save somewhere else
-            string path = _savePath + novel.Type + "\\" + CheckChars(novel.Name);
+            string path = Scraping.SavePath + Type + "\\" + CheckChars(Name);
             Directory.CreateDirectory(path);
 
             var indexPath = path + "\\_Index.txt";
             if (!File.Exists(indexPath))
             {
                 TextWriter tw = new StreamWriter(indexPath);
-                tw.WriteLine(novel.ToString());
+                tw.WriteLine(ToString());
                 tw.Close();
             }
             else if (File.Exists(indexPath))
                 using (var tw = new StreamWriter(indexPath, false))
-                    tw.WriteLine(novel.ToString());
+                    tw.WriteLine(ToString());
 
-            foreach (var volume in novel.Volumes)
+            foreach (var volume in Volumes)
             {
                 var volPath = path;
 

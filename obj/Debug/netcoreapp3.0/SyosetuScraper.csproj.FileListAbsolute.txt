@@ -37,3 +37,6 @@ C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\obj\Debug\netcoreapp3
 C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\obj\Debug\netcoreapp3.0\SyosetuScraper.csproj.CopyComplete
 C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\obj\Debug\netcoreapp3.0\SyosetuScraper.dll
 C:\Users\Gabriele.Dolfi\Source\Repos\netoru\SyosetuScraper\obj\Debug\netcoreapp3.0\SyosetuScraper.pdb
+E:\OneDrive - F.lli Polli Spa\_Documents\Visual Studio\Projects\SyosetuScraper\bin\Debug\netcoreapp3.0\HtmlAgilityPack.dll
+E:\OneDrive - F.lli Polli Spa\_Documents\Visual Studio\Projects\SyosetuScraper\bin\Debug\netcoreapp3.0\System.Xml.XPath.XmlDocument.dll
+E:\OneDrive - F.lli Polli Spa\_Documents\Visual Studio\Projects\SyosetuScraper\obj\Debug\netcoreapp3.0\SyosetuScraper.csproj.CopyComplete

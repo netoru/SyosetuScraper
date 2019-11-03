@@ -1,16 +1,16 @@
 ﻿using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace SyosetuScraper
 {
     class Scraping
     {
-        private readonly string _savePath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + @"\Syosetu Novels\";
+        public readonly static string SavePath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + @"\Syosetu Novels\";
         private readonly List<Novel> _novels = new List<Novel>();
         private static readonly Dictionary<string, string> _cookieIndx = new Dictionary<string, string>();
         public static CookieContainer SyousetsuCookie { get; } = new CookieContainer();
@@ -19,15 +19,16 @@ namespace SyosetuScraper
         {
             GenerateCookies();
 
-            //Had I been smarter, 
-            //I would've been able to make the two following foreach loops async
-            /*foreach (var url in urlCollection)
-            {
-                var toc = GetPage(url, SyousetsuCookie);
-                _novels.Add(new Novel(url, toc));
-            }*/
             _novels.Add(new Novel(urlCollection[4], GetPage(urlCollection[4], SyousetsuCookie)));
 
+            Trace.WriteLine("A");
+            Trace.WriteLine("B");
+            var no = _novels[0].SetupAsync();
+            Trace.WriteLine("C");
+            Trace.WriteLine("D");
+            Trace.WriteLine("E");
+            no.Wait();
+            /*
             foreach (var volume in _novels[0].Volumes)
             {
                 foreach (var chapter in volume.Chapters)
@@ -38,18 +39,10 @@ namespace SyosetuScraper
                         chapter.GetChapter();
                 }
             }
-            /*
-            _novels[0].Volumes[1].Chapters[2].CheckValidity();
 
-            if (_novels[0].Volumes[1].Chapters[2].Valid)
-                _novels[0].Volumes[1].Chapters[2].GetChapter();
+            _novels[0].Save(false);
             */
-            Save(_novels[0], false);
-
-            /*foreach (var novel in _novels)            
-                Save(novel, false);*/
-
-            Console.WriteLine("Download complete.");
+            Trace.WriteLine("Download complete.");
         }
 
         private static void GenerateCookies()

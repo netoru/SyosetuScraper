@@ -8,3 +8,6 @@ csharp_style_expression_bodied_constructors = when_on_single_line:silent
 
 # IDE0022: Use block body for methods
 csharp_style_expression_bodied_methods = when_on_single_line:silent
+
+# CS1998: Async method lacks 'await' operators and will run synchronously
+dotnet_diagnostic.CS1998.severity = silent

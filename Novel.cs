@@ -29,17 +29,20 @@ namespace SyosetuScraper
             if (!IsValid)
                 return;
 
-            GetDetails(doc);
-            GetNovel(doc);
+            var details = GetDetailsAsync(doc);
+            var novel = GetNovelAsync(doc);
+
+            details.Wait();
+            novel.Wait();
         }
 
-        private string GetName(HtmlDocument doc)
+        private static string GetName(HtmlDocument doc)
         {
             var nameNode = doc.DocumentNode.SelectSingleNode("//p[@class='novel_title']");
             return (nameNode == null) ? "エラー" : nameNode.InnerText.TrimStart().TrimEnd();
         }
 
-        private void GetDetails(HtmlDocument doc)
+        private async Task GetDetailsAsync(HtmlDocument doc)
         {
             var seriesNode = doc.DocumentNode.SelectSingleNode("//p[@class='series_title']");
             Series = (seriesNode == null) ? string.Empty : seriesNode.InnerText.TrimStart().TrimEnd();
@@ -59,7 +62,7 @@ namespace SyosetuScraper
             Id = groups[2].Value;
         }
 
-        private void GetNovel(HtmlDocument doc)
+        private async Task GetNovelAsync(HtmlDocument doc)
         {
             var indexNode = doc.DocumentNode.SelectNodes("//div[@class='index_box']");
 

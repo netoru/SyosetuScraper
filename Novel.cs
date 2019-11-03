@@ -66,15 +66,17 @@ namespace SyosetuScraper
             var nodes = indexNode.First().ChildNodes
                 .Where(n => n.Name == "div" || n.Name == "dl").ToList();
             
-            for (int i = 0; i < nodes.Count; i++)
+            var i = 1;
+            foreach (var node in nodes)
             {
-                if (nodes[i] == null)
+                if (node == null)
                     continue;
-                if (nodes[i].Name == "dl")
+                if (node.Name == "dl")
                     continue;
-                var volName = nodes[i].InnerText.TrimStart().TrimEnd();
-                var volIndex = nodes.IndexOf(nodes[i]);
+                var volName = node.InnerText.TrimStart().TrimEnd();
+                var volIndex = nodes.IndexOf(node);
                 Volumes.Add(new Volume(volIndex, i, volName, Link));
+                i++;
             }
 
             if (Volumes.Count == 0)

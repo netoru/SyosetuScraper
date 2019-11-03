@@ -50,7 +50,7 @@ namespace SyosetuScraper
 
         private string SearchDoc(string xpath, bool repStr = false, string oldStr = "作者：", string newStr = "")
         {
-            var resNode = _doc.DocumentNode.SelectSingleNode(xpath);//await Task.Run(() => )
+            var resNode = _doc.DocumentNode.SelectSingleNode(xpath);
             var result = (resNode == null) ? "エラー" : resNode.InnerText.TrimStart().TrimEnd();
             result = repStr ? result.Replace(oldStr, newStr) : result;
             return result;
@@ -107,7 +107,7 @@ namespace SyosetuScraper
             var txt = new StringBuilder();
 
             txt.AppendLine("Name: " + Name);
-            if (!string.IsNullOrEmpty(Series)) txt.AppendLine("Series: " + Series);
+            if (Series != "エラー") txt.AppendLine("Series: " + Series);
             txt.AppendLine("Author: " + Author);
             txt.AppendLine("Link: " + Link);
             txt.AppendLine();

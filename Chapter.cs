@@ -93,7 +93,10 @@ namespace SyosetuScraper
 
         private Image GetImage(HtmlNode node)
         {
-            var nodeHtml = node.FirstChild.FirstChild.OuterHtml;
+            var imgNode = node.SelectSingleNode(".//img[@src]");
+            if (imgNode == null) return null;
+
+            var nodeHtml = imgNode.OuterHtml;
             var matches = Regex.Match(nodeHtml, "src=\"(.*?)\"").Groups;
 
             if (matches.Count < 2)

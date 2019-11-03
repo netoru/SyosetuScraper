@@ -4,28 +4,42 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SyosetuScraper
 {
     class Scraping
     {
         public readonly static string SavePath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + @"\Syosetu Novels\";
-        //private readonly List<Novel> _novels = new List<Novel>();
+        private static readonly List<Novel> _novels = new List<Novel>();
         private static readonly Dictionary<string, string> _cookieIndx = new Dictionary<string, string>();
         public static CookieContainer SyousetsuCookie { get; } = new CookieContainer();
 
-        public static void Crawl()
+        public static async Task CrawlAsync()
         {
             string[] urlCollection = File.ReadAllLines(SavePath + "URLs.txt");
 
             GenerateCookies();
 
-            foreach (var url in urlCollection)
+            foreach (var url in urlCollection)            
+                _novels.Add(new Novel(url, GetPage(url, SyousetsuCookie)));
+
+            var tasks = new Task[_novels.Count];
+
+            var i = 0;
+            foreach (var novel in _novels)
             {
-                var novel = new Novel(url, GetPage(url, SyousetsuCookie));
-                novel.Setup();
-                novel.Save();
+                if (i >= _novels.Count)
+                    break;
+
+                tasks[i] = Task.Run(() => novel.Setup());
+                i++;
             }
+
+            Task.WaitAll(tasks);
+
+            foreach (var novel in _novels)
+                novel.Save();
         }
 
         private static void GenerateCookies()

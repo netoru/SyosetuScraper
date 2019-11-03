@@ -7,7 +7,7 @@ namespace SyosetuScraper
         public Main()
         {
             //InitializeComponent();
-            Scraping.Crawl();
+            Scraping.CrawlAsync();
             MessageBox.Show("Download Complete");
         }
     }

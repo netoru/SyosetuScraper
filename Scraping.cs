@@ -1,7 +1,6 @@
 ﻿using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -11,21 +10,22 @@ namespace SyosetuScraper
     class Scraping
     {
         public readonly static string SavePath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + @"\Syosetu Novels\";
-        private readonly List<Novel> _novels = new List<Novel>();
+        //private readonly List<Novel> _novels = new List<Novel>();
         private static readonly Dictionary<string, string> _cookieIndx = new Dictionary<string, string>();
         public static CookieContainer SyousetsuCookie { get; } = new CookieContainer();
 
-        public void Crawl(string[] urlCollection)
+        public static void Crawl()
         {
+            string[] urlCollection = File.ReadAllLines(SavePath + "URLs.txt");
+
             GenerateCookies();
 
-            _novels.Add(new Novel(urlCollection[4], GetPage(urlCollection[4], SyousetsuCookie)));
-            
-            _novels[0].Setup();
-
-            _novels[0].Save();
-            
-            Trace.WriteLine("Download complete.");
+            foreach (var url in urlCollection)
+            {
+                var novel = new Novel(url, GetPage(url, SyousetsuCookie));
+                novel.Setup();
+                novel.Save();
+            }
         }
 
         private static void GenerateCookies()

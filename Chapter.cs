@@ -23,6 +23,7 @@ namespace SyosetuScraper
 
         private HtmlDocument _doc;
 
+        private HtmlNodeCollection _header;
         private HtmlNodeCollection _footnotes;
 
         public Chapter(int getId, int getNumber, string getName, string getLink) => (Id, Number, Name, Link) = (getId, getNumber, getName, getLink);
@@ -48,20 +49,29 @@ namespace SyosetuScraper
                 return;
 
             _footnotes = new HtmlNodeCollection(_doc.DocumentNode);
+            //handled chapter name here since otherwise it wouldn't show up in the characther count
+            _header = new HtmlNodeCollection(_doc.DocumentNode);
+            var hNode1 = HtmlNode.CreateNode($"<p id=\"Lh0\">{Name}</p>");
+            var hNode2 = HtmlNode.CreateNode("================================");
+            _header.Insert(0, hNode1);
+            _header.Insert(1, hNode2);
 
             Valid = true;
         }
 
         public void GetChapter()
         {
+            var chk = 0;
+            var pageIndex = 0;
+
+            DivideInPages(_header, ref chk, ref pageIndex);
+
             var chapterNode = _doc.DocumentNode.SelectSingleNode("//div[@id='novel_honbun']");
             var lineNodes = chapterNode?.SelectNodes("./p[starts-with(@id, 'L')]");
 
             if (lineNodes == null)
                 return;
 
-            var chk = 0;
-            var pageIndex = 0;
             DivideInPages(lineNodes, ref chk, ref pageIndex);
 
             var anoteNode = _doc.DocumentNode.SelectSingleNode("//div[@id='novel_a']");
@@ -70,8 +80,8 @@ namespace SyosetuScraper
             if (aLineNodes == null)
                 return;
 
-            var node = HtmlNode.CreateNode("<p id=\"La0\">================Author Note================</p>");
-            aLineNodes.Insert(0, node);
+            var aNode = HtmlNode.CreateNode("<p id=\"La0\">================Author Note================</p>");
+            aLineNodes.Insert(0, aNode);
 
             DivideInPages(aLineNodes, ref chk, ref pageIndex);
 
@@ -172,11 +182,13 @@ namespace SyosetuScraper
                     line = node.InnerText;                
 
                 line = line.Replace("　", "");
-                chk += line.Length;
+                //had to do this cause GT counts crlf too but str.Length doesn't
+                var len = string.IsNullOrEmpty(line) ? 1 : line.Length;
+                chk += len;
 
                 if (chk > 5000)
                 {
-                    chk = line.Length;
+                    chk = len;
                     pageIndex++;
 
                     if (!Pages.ContainsKey(pageIndex))
@@ -195,11 +207,7 @@ namespace SyosetuScraper
                 return "";
 
             var txt = new StringBuilder();
-
-            txt.AppendLine(Name);
-            txt.AppendLine();
-            txt.AppendLine();
-
+            
             foreach (var line in Pages[page])
                 txt.AppendLine(line.Value);            
 

@@ -64,7 +64,8 @@ namespace SyosetuScraper
             var chk = 0;
             var pageIndex = 0;
 
-            DivideInPages(_header, ref chk, ref pageIndex);
+            if (Settings.Default.IncludeChapterTitle)
+                DivideInPages(_header, ref chk, ref pageIndex);
 
             var chapterNode = _doc.DocumentNode.SelectSingleNode("//div[@id='novel_honbun']");
             var lineNodes = chapterNode?.SelectNodes("./p[starts-with(@id, 'L')]");
@@ -74,16 +75,22 @@ namespace SyosetuScraper
 
             DivideInPages(lineNodes, ref chk, ref pageIndex);
 
-            var anoteNode = _doc.DocumentNode.SelectSingleNode("//div[@id='novel_a']");
-            var aLineNodes = anoteNode?.SelectNodes("./p[starts-with(@id, 'La')]");
+            if (Settings.Default.IncludeAuthorNote)
+            {
+                var anoteNode = _doc.DocumentNode.SelectSingleNode("//div[@id='novel_a']");
+                var aLineNodes = anoteNode?.SelectNodes("./p[starts-with(@id, 'La')]");
 
-            if (aLineNodes == null)
+                if (aLineNodes == null)
+                    return;
+
+                var aNode = HtmlNode.CreateNode("<p id=\"La0\">================Author Note================</p>");
+                aLineNodes.Insert(0, aNode);
+
+                DivideInPages(aLineNodes, ref chk, ref pageIndex);
+            }
+
+            if (!Settings.Default.IncludeFootnotes)
                 return;
-
-            var aNode = HtmlNode.CreateNode("<p id=\"La0\">================Author Note================</p>");
-            aLineNodes.Insert(0, aNode);
-
-            DivideInPages(aLineNodes, ref chk, ref pageIndex);
 
             if (_footnotes == null)
                 return;
@@ -93,6 +100,9 @@ namespace SyosetuScraper
 
         private Image GetImage(HtmlNode node)
         {
+            if (!Settings.Default.DownloadImages)
+                return null;
+
             var imgNode = node.SelectSingleNode(".//img[@src]");
             if (imgNode == null) return null;
 
@@ -172,7 +182,7 @@ namespace SyosetuScraper
                     Image img = GetImage(node);
 
                     if (img == null)
-                        line = "================Unable to download image================";
+                        line = "================404 - Image Not Found================";
                     else
                     {
                         line = $"================Image {Id}-{node.Id}================";
@@ -189,7 +199,7 @@ namespace SyosetuScraper
                 var len = string.IsNullOrEmpty(line) ? 1 : line.Length;
                 chk += len;
 
-                if (chk > 5000)
+                if (chk > Settings.Default.PageMaxLength)
                 {
                     chk = len;
                     pageIndex++;
@@ -221,7 +231,13 @@ namespace SyosetuScraper
         {
             foreach (var page in Pages)
             {
-                var chapterPath = path + $"\\{Id}-{page.Key} - {Novel.CheckChars(Name)}.txt";
+                var chapterPath = Settings.Default.ChapterNameFormat;
+                chapterPath = chapterPath.Replace("{Id}", Id.ToString());
+                chapterPath = chapterPath.Replace("{Number}", Number.ToString());
+                chapterPath = chapterPath.Replace("{Page}", page.Key.ToString());
+                chapterPath = chapterPath.Replace("{Name}", Name);
+
+                chapterPath = $"{path}\\{Novel.CheckChars(chapterPath)}.txt";
 
                 if (!File.Exists(chapterPath))
                 {
@@ -239,7 +255,14 @@ namespace SyosetuScraper
             {
                 foreach (var image in page.Value)
                 {
-                    var imagePath = path + $"\\{Id}-{page.Key}-{image.Key}.png";
+                    var imagePath = Settings.Default.ChapterNameFormat;
+                    imagePath = imagePath.Replace("{Id}", Id.ToString());
+                    imagePath = imagePath.Replace("{Number}", Number.ToString());
+                    imagePath = imagePath.Replace("{Page}", page.Key.ToString());
+                    imagePath = imagePath.Replace("{Name}", Name);
+                    imagePath = imagePath.Replace("{Id_Image}", image.Key);
+
+                    imagePath = $"{path}\\{Novel.CheckChars(imagePath)}.png";
                     image.Value.Save(imagePath, ImageFormat.Png);
                 }
             }

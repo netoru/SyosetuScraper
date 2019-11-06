@@ -67,12 +67,18 @@ namespace SyosetuScraper
             return txt.ToString();
         }
 
-        public void Save(string path, bool CreateFoldersForEachVolume)
+        public void Save(string path)
         {
-            if (CreateFoldersForEachVolume)
+            if (Settings.Default.VolumeEqFolder)
                 if (!string.IsNullOrEmpty(Name))
                 {
-                    path += $"\\{Number} - {Novel.CheckChars(Name)}";
+                    var volumePath = Settings.Default.VolumeFolderNameFormat;
+                    volumePath = volumePath.Replace("{Id}", Id.ToString());
+                    volumePath = volumePath.Replace("{Number}", Number.ToString());
+                    volumePath = volumePath.Replace("{Name}", Name);
+                    volumePath = volumePath.Replace("{Chapters}", Chapters.Count.ToString());
+
+                    path += "\\" + Novel.CheckChars(volumePath);
                     Directory.CreateDirectory(path);
                 }
 

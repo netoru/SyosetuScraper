@@ -121,18 +121,36 @@ namespace SyosetuScraper
             return txt.ToString();
         }
 
-        public void Save(bool CreateFoldersForEachVolume = true, bool divideByType = false)
+        public void Save()
         {
-            string path = Scraping.SavePath + CheckChars(Name);
+            string path = Settings.Default.SavePath;
 
-            if (divideByType) path += Type + "\\";
-            if (!string.IsNullOrEmpty(Nickname)) path += CheckChars(Nickname) + " ";
+            if (Settings.Default.TypeEqFolder) path += CheckChars(Type) + "\\";
+            if (Settings.Default.SeriesEqFolder) path += CheckChars(Series) + "\\";
 
-            path += CheckChars(Name);
 
+            var novelPath = Settings.Default.ChapterNameFormat;
+            novelPath = novelPath.Replace("{Id}", Id.ToString());
+            novelPath = novelPath.Replace("{Name}", Name);
+            novelPath = novelPath.Replace("{Author}", Author);
+            novelPath = novelPath.Replace("{Type}", Type);
+            novelPath = novelPath.Replace("{Series}", Series);
+
+            if (!string.IsNullOrEmpty(Nickname))
+                novelPath = novelPath.Replace("{Nickname}", Nickname);
+            else
+                novelPath = novelPath.Replace("{Nickname}", "");
+
+            path += CheckChars(novelPath);
             Directory.CreateDirectory(path);
 
-            var indexPath = path + "\\_Index.txt";
+            foreach (var volume in Volumes)            
+                volume.Save(path);
+
+            if (!Settings.Default.CreateIndex)
+                return;
+
+            var indexPath = path + $"\\{CheckChars(Settings.Default.IndexName)}.txt";
             if (!File.Exists(indexPath))
             {
                 TextWriter tw = new StreamWriter(indexPath);
@@ -142,9 +160,6 @@ namespace SyosetuScraper
             else if (File.Exists(indexPath))
                 using (var tw = new StreamWriter(indexPath, false))
                     tw.WriteLine(ToString());
-
-            foreach (var volume in Volumes)            
-                volume.Save(path, CreateFoldersForEachVolume);            
         }
 
         public static string CheckChars(string input)

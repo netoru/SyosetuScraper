@@ -7,8 +7,10 @@ namespace SyosetuScraper
         public Main()
         {
             //InitializeComponent();
-            Scraping.CrawlAsync();
-            MessageBox.Show("Download Complete");
+            var end = Scraping.CrawlAsync().Result;
+            var msg = end ? "Download Complete" : "Operation Failed";
+            MessageBox.Show(msg);
+            Settings.Default.Save();
         }
     }
 }

@@ -12,16 +12,25 @@ namespace SyosetuScraper
     class Scraping
     {
         public static CookieContainer SyousetsuCookie { get; } = new CookieContainer();
-        public readonly static string SavePath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + @"\Syosetu Novels\";
+        private readonly static string _defaultSavePath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + @"\Syosetu Novels\";
         private static readonly Dictionary<string, string> _cookieIndx = new Dictionary<string, string>();
         private static readonly Dictionary<string, string> _urls = new Dictionary<string, string>();
         private static readonly List<Novel> _novels = new List<Novel>();
 
-        public static async Task CrawlAsync()
+        public static async Task<bool> CrawlAsync()
         {
+            if (string.IsNullOrEmpty(Settings.Default.SavePath) || !Directory.Exists(Settings.Default.SavePath))
+                Settings.Default.SavePath = _defaultSavePath;
+
+            if (string.IsNullOrEmpty(Settings.Default.SourceFile) || !File.Exists(Settings.Default.SourceFile))
+            {
+                Settings.Default.SourceFile = Settings.Default.SavePath + "URLs.txt";
+                return false;
+            }
+
             GenerateCookies();
 
-            var lines = File.ReadAllLines(SavePath + "URLs.txt");
+            var lines = File.ReadAllLines(Settings.Default.SavePath + "URLs.txt");
 
             foreach (var line in lines)
             {
@@ -54,6 +63,8 @@ namespace SyosetuScraper
 
             foreach (var novel in _novels)
                 novel.Save();
+
+            return true;
         }
 
         private static void GenerateCookies()

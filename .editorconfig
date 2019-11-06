@@ -11,3 +11,12 @@ csharp_style_expression_bodied_methods = when_on_single_line:silent
 
 # CS1998: Async method lacks 'await' operators and will run synchronously
 dotnet_diagnostic.CS1998.severity = silent
+
+# IDE0008: Use explicit type
+csharp_style_var_when_type_is_apparent = true:silent
+
+# IDE0008: Use explicit type
+csharp_style_var_for_built_in_types = true:silent
+
+# IDE0011: Add braces
+csharp_prefer_braces = when_multiline:silent

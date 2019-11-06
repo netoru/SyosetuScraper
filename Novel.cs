@@ -13,6 +13,7 @@ namespace SyosetuScraper
         public string Id { get; private set; }
         public string Series { get; private set; }
         public string Name { get; private set; }
+        public string Nickname { get; private set; }
         public string Author { get; private set; }
         public string Description { get; private set; }
         public string Type { get; private set; }
@@ -22,7 +23,7 @@ namespace SyosetuScraper
         public bool IsValid => (Name != "エラー") ? true : false;
         public string TableOfContents => GetToC();
 
-        public Novel(string getLink, HtmlDocument getDoc) => (Link, _doc) = (getLink, getDoc);
+        public Novel(string getNick, string getLink, HtmlDocument getDoc) => (Nickname, Link, _doc) = (getNick, getLink, getDoc);
 
         public void Setup()
         {
@@ -120,9 +121,15 @@ namespace SyosetuScraper
             return txt.ToString();
         }
 
-        public void Save(bool CreateFoldersForEachVolume = true)
+        public void Save(bool CreateFoldersForEachVolume = true, bool divideByType = false)
         {
-            string path = Scraping.SavePath + Type + "\\" + CheckChars(Name);
+            string path = Scraping.SavePath + CheckChars(Name);
+
+            if (divideByType) path += Type + "\\";
+            if (!string.IsNullOrEmpty(Nickname)) path += CheckChars(Nickname) + " ";
+
+            path += CheckChars(Name);
+
             Directory.CreateDirectory(path);
 
             var indexPath = path + "\\_Index.txt";

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,19 +11,32 @@ namespace SyosetuScraper
 {
     class Scraping
     {
-        public readonly static string SavePath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + @"\Syosetu Novels\";
-        private static readonly List<Novel> _novels = new List<Novel>();
-        private static readonly Dictionary<string, string> _cookieIndx = new Dictionary<string, string>();
         public static CookieContainer SyousetsuCookie { get; } = new CookieContainer();
+        public readonly static string SavePath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + @"\Syosetu Novels\";
+        private static readonly Dictionary<string, string> _cookieIndx = new Dictionary<string, string>();
+        private static readonly Dictionary<string, string> _urls = new Dictionary<string, string>();
+        private static readonly List<Novel> _novels = new List<Novel>();
 
         public static async Task CrawlAsync()
         {
-            string[] urlCollection = File.ReadAllLines(SavePath + "URLs.txt");
-
             GenerateCookies();
 
-            foreach (var url in urlCollection)            
-                _novels.Add(new Novel(url, GetPage(url, SyousetsuCookie)));
+            var lines = File.ReadAllLines(SavePath + "URLs.txt");
+
+            foreach (var line in lines)
+            {
+                var x = line.Split(";");
+
+                if (x.Length < 1) continue;
+                if (_urls.ContainsKey(x[0])) continue;
+
+                var nick = (x.Length > 1) ? x[1] : string.Empty;
+                
+                _urls.Add(x[0], nick);
+            }
+
+            foreach (var url in _urls)
+                _novels.Add(new Novel(url.Value, url.Key, GetPage(url.Key, SyousetsuCookie)));
 
             var tasks = new Task[_novels.Count];
 

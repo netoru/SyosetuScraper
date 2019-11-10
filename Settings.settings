@@ -56,11 +56,23 @@
     <Setting Name="CreateIndex" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="IndexName" Type="System.String" Scope="User">
+    <Setting Name="IndexFileName" Type="System.String" Scope="User">
       <Value Profile="(Default)">_Index</Value>
     </Setting>
-    <Setting Name="SourceFile" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+    <Setting Name="SourceFileName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">URLs</Value>
+    </Setting>
+    <Setting Name="ScrapeTags" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ReplaceKnownTags" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="KnownTagsFileName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Tags</Value>
+    </Setting>
+    <Setting Name="AuthorEqFolder" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>
 </SettingsFile>

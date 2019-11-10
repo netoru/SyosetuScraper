@@ -242,24 +242,72 @@ namespace SyosetuScraper {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("_Index")]
-        public string IndexName {
+        public string IndexFileName {
             get {
-                return ((string)(this["IndexName"]));
+                return ((string)(this["IndexFileName"]));
             }
             set {
-                this["IndexName"] = value;
+                this["IndexFileName"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string SourceFile {
+        [global::System.Configuration.DefaultSettingValueAttribute("URLs")]
+        public string SourceFileName {
             get {
-                return ((string)(this["SourceFile"]));
+                return ((string)(this["SourceFileName"]));
             }
             set {
-                this["SourceFile"] = value;
+                this["SourceFileName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ScrapeTags {
+            get {
+                return ((bool)(this["ScrapeTags"]));
+            }
+            set {
+                this["ScrapeTags"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ReplaceKnownTags {
+            get {
+                return ((bool)(this["ReplaceKnownTags"]));
+            }
+            set {
+                this["ReplaceKnownTags"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Tags")]
+        public string KnownTagsFileName {
+            get {
+                return ((string)(this["KnownTagsFileName"]));
+            }
+            set {
+                this["KnownTagsFileName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AuthorEqFolder {
+            get {
+                return ((bool)(this["AuthorEqFolder"]));
+            }
+            set {
+                this["AuthorEqFolder"] = value;
             }
         }
     }

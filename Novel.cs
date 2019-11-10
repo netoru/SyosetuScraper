@@ -18,7 +18,10 @@ namespace SyosetuScraper
         public string Description { get; private set; }
         public string Type { get; private set; }
         public string Link { get; private set; }
+        public string AuthorLink { get; private set; }
+        public string InfotopLink { get; private set; }
         public List<Volume> Volumes { get; private set; }
+        public HashSet<string> Tags { get; private set; }
         public HtmlDocument _doc { get; private set; }
         public bool IsValid => (Name != "エラー") ? true : false;
         public string TableOfContents => GetToC();
@@ -44,6 +47,11 @@ namespace SyosetuScraper
             catch (IndexOutOfRangeException)
             {
                 throw;
+            }
+
+            if (Settings.Default.ScrapeTags)
+            {
+                GetTags();
             }
 
             GetNovel();
@@ -103,6 +111,30 @@ namespace SyosetuScraper
             return toc.ToString();
         }
 
+        private void GetTags()
+        {
+            var input = "";
+
+            if (!Settings.Default.ReplaceKnownTags)
+                return;
+
+            while (input.Contains("  "))
+                input = input.Replace("  ", " ");
+
+            var splitter = ' ';
+
+            var originalWords = input.Split(splitter);
+            Tags = new HashSet<string>();
+
+            for (var i = 0; i < originalWords.Length; i++)
+            {
+                if (Scraping.KnownTags.ContainsKey(originalWords[i]))
+                    Tags.Add(Scraping.KnownTags[originalWords[i]]);
+                else
+                    Tags.Add(originalWords[i]);
+            }
+        }
+
         public override string ToString()
         {
             var txt = new StringBuilder();
@@ -150,7 +182,7 @@ namespace SyosetuScraper
             if (!Settings.Default.CreateIndex)
                 return;
 
-            var indexPath = path + $"\\{CheckChars(Settings.Default.IndexName)}.txt";
+            var indexPath = path + $"\\{CheckChars(Settings.Default.IndexFileName)}.txt";
             if (!File.Exists(indexPath))
             {
                 TextWriter tw = new StreamWriter(indexPath);

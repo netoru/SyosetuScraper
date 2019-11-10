@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using System;
+using System.Windows.Forms;
 
 namespace SyosetuScraper
 {
@@ -11,6 +12,17 @@ namespace SyosetuScraper
             var msg = end ? "Download Complete" : "Operation Failed";
             MessageBox.Show(msg);
             Settings.Default.Save();
+        }
+
+        private void OnFormClose(object sender, EventArgs e)
+        {
+            if (Settings.Default.RememberSettings)
+            {
+                Settings.Default.Size = Size;
+                Settings.Default.Location = Location;
+
+                Settings.Default.Save();
+            }
         }
     }
 }

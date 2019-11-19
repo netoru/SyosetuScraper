@@ -11,7 +11,7 @@ namespace SyosetuScraper
             var end = Scraping.CrawlAsync().Result;
             var msg = end ? "Download Complete" : "Operation Failed";
             MessageBox.Show(msg);
-            Settings.Default.Save();
+            Close();
         }
 
         private void OnFormClose(object sender, EventArgs e)

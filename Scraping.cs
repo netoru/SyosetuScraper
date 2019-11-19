@@ -24,10 +24,10 @@ namespace SyosetuScraper
             if (string.IsNullOrEmpty(Settings.Default.SavePath) || !Directory.Exists(Settings.Default.SavePath))
                 Settings.Default.SavePath = _defaultSavePath;
 
-            if (string.IsNullOrEmpty(Settings.Default.SourceFileName))
-                Settings.Default.SourceFileName = "URLs";
+            if (string.IsNullOrEmpty(Settings.Default.SourceFileNameFormat))
+                Settings.Default.SourceFileNameFormat = "URLs";
 
-            var source = Settings.Default.SavePath + Settings.Default.SourceFileName + ".txt";
+            var source = Settings.Default.SavePath + Settings.Default.SourceFileNameFormat + ".txt";
 
             if (!File.Exists(source))            
                 return false;            
@@ -52,7 +52,7 @@ namespace SyosetuScraper
             }
 
             foreach (var url in _urls)
-                _novels.Add(new Novel(url.Value, url.Key, GetPage(url.Key, SyousetsuCookie)));
+                _novels.Add(new Novel(url.Value, url.Key, GetPage(url.Key)));
 
             var tasks = new Task[_novels.Count];
 
@@ -93,13 +93,13 @@ namespace SyosetuScraper
                 SyousetsuCookie.Add(new Cookie(item.Key, item.Value, "/", ".syosetu.com"));
         }
 
-        public static HtmlDocument GetPage(string link, CookieContainer cookies)
+        public static HtmlDocument GetPage(string link)
         {
             try
             {
                 var request = (HttpWebRequest)WebRequest.Create(link);
                 request.Method = "GET";
-                request.CookieContainer = cookies;
+                request.CookieContainer = SyousetsuCookie;
                 //useragent is needed else the getresponse returns 403 forbidden
                 request.UserAgent = "definitely-not-a-screen-scraper";
                 var response = (HttpWebResponse)request.GetResponse();

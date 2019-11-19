@@ -49,10 +49,8 @@ namespace SyosetuScraper
                 throw;
             }
 
-            if (Settings.Default.ScrapeTags)
-            {
-                GetTags();
-            }
+            if (Settings.Default.ScrapeTags)            
+                GetTags();            
 
             GetNovel();
         }
@@ -113,14 +111,31 @@ namespace SyosetuScraper
 
         private void GetTags()
         {
-            var input = "";
+            var infoTopLink = Link.Replace(Id, "novelview/infotop/ncode/" + Id);
+            var infoTopDoc = Scraping.GetPage(infoTopLink);
 
-            if (!Settings.Default.ReplaceKnownTags)
+            var trNodes = infoTopDoc.DocumentNode.SelectNodes("//tr");
+            HtmlNode tdNode = HtmlNode.CreateNode("");
+
+            foreach (var trNode in trNodes)
+                foreach (var item in trNode.ChildNodes)
+                    if (item.InnerText == "キーワード")
+                    {
+                        tdNode = trNode.SelectSingleNode("td");
+                        break;
+                    }
+
+            var input = tdNode.InnerText;
+
+            if (string.IsNullOrEmpty(input))
                 return;
+
+            input = input.Replace("\n", " ");
+            input = input.Replace("&nbsp;", " ");
 
             while (input.Contains("  "))
                 input = input.Replace("  ", " ");
-
+            
             var splitter = ' ';
 
             var originalWords = input.Split(splitter);
@@ -128,7 +143,10 @@ namespace SyosetuScraper
 
             for (var i = 0; i < originalWords.Length; i++)
             {
-                if (Scraping.KnownTags.ContainsKey(originalWords[i]))
+                if (string.IsNullOrEmpty(originalWords[i]))
+                    continue;
+
+                if (Settings.Default.ReplaceKnownTags && Scraping.KnownTags.ContainsKey(originalWords[i]))
                     Tags.Add(Scraping.KnownTags[originalWords[i]]);
                 else
                     Tags.Add(originalWords[i]);
@@ -147,6 +165,23 @@ namespace SyosetuScraper
             txt.AppendLine("Description:");
             txt.AppendLine(Description);
             txt.AppendLine();
+
+            if (Settings.Default.ScrapeTags)
+            {
+                var tagsLine = "Tags:";
+
+                for (int i = 0; i < Tags.Count; i++)
+                {
+                    tagsLine += Tags.ElementAt(i);
+
+                    if (i < Tags.Count - 1)
+                        tagsLine += ", ";
+                }
+
+                txt.AppendLine(tagsLine);
+                txt.AppendLine();
+            }
+
             txt.AppendLine("Table of Contents: ");
             txt.AppendLine(TableOfContents);
 
@@ -156,41 +191,55 @@ namespace SyosetuScraper
         public void Save()
         {
             string path = Settings.Default.SavePath;
+            
+            if (!Settings.Default.GetOnlyNovelInfo)
+            {
+                if (Settings.Default.TypeEqFolder) path += CheckChars(Type) + "\\";
+                if (Settings.Default.SeriesEqFolder) path += CheckChars(Series) + "\\";
+                if (Settings.Default.AuthorEqFolder) path += CheckChars(Author) + "\\";
 
-            if (Settings.Default.TypeEqFolder) path += CheckChars(Type) + "\\";
-            if (Settings.Default.SeriesEqFolder) path += CheckChars(Series) + "\\";
+                var novelPath = Settings.Default.NovelFolderNameFormat;
+                novelPath = novelPath.Replace("{Id}", Id.ToString());
+                novelPath = novelPath.Replace("{Name}", Name);
+                novelPath = novelPath.Replace("{Author}", Author);
+                novelPath = novelPath.Replace("{Type}", Type);
+                novelPath = novelPath.Replace("{Series}", Series);
 
+                if (!string.IsNullOrEmpty(Nickname))
+                    novelPath = novelPath.Replace("{Nickname}", Nickname);
+                else
+                    novelPath = novelPath.Replace("{Nickname}", "");
 
-            var novelPath = Settings.Default.ChapterNameFormat;
-            novelPath = novelPath.Replace("{Id}", Id.ToString());
-            novelPath = novelPath.Replace("{Name}", Name);
-            novelPath = novelPath.Replace("{Author}", Author);
-            novelPath = novelPath.Replace("{Type}", Type);
-            novelPath = novelPath.Replace("{Series}", Series);
+                path += CheckChars(novelPath);
+                Directory.CreateDirectory(path);
 
-            if (!string.IsNullOrEmpty(Nickname))
-                novelPath = novelPath.Replace("{Nickname}", Nickname);
-            else
-                novelPath = novelPath.Replace("{Nickname}", "");
-
-            path += CheckChars(novelPath);
-            Directory.CreateDirectory(path);
-
-            foreach (var volume in Volumes)            
-                volume.Save(path);
+                foreach (var volume in Volumes)
+                    volume.Save(path);
+            }
 
             if (!Settings.Default.CreateIndex)
                 return;
 
-            var indexPath = path + $"\\{CheckChars(Settings.Default.IndexFileName)}.txt";
-            if (!File.Exists(indexPath))
+            var indexPath = Settings.Default.IndexFileNameFormat;
+            indexPath = indexPath.Replace("{Id}", Id.ToString());
+            indexPath = indexPath.Replace("{Name}", Name);
+            indexPath = indexPath.Replace("{Author}", Author);
+            indexPath = indexPath.Replace("{Type}", Type);
+            indexPath = indexPath.Replace("{Series}", Series);
+
+            if (!Settings.Default.KeepIndexInsideNovelFolder) 
+                path = Settings.Default.SavePath;
+
+            path += CheckChars(indexPath);
+
+            if (!File.Exists(path))
             {
-                TextWriter tw = new StreamWriter(indexPath);
+                TextWriter tw = new StreamWriter(path);
                 tw.WriteLine(ToString());
                 tw.Close();
             }
-            else if (File.Exists(indexPath))
-                using (var tw = new StreamWriter(indexPath, false))
+            else if (File.Exists(path))
+                using (var tw = new StreamWriter(path, false))
                     tw.WriteLine(ToString());
         }
 

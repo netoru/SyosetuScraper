@@ -39,6 +39,9 @@ namespace SyosetuScraper
                 Chapters.Add(new Chapter(chapterId, i + 1, chapterNode.InnerText, _link + chapterId + "/"));
             }
 
+            if (Settings.Default.GetOnlyNovelInfo)
+                return;
+
             foreach (var chapter in Chapters)
             {
                 chapter.CheckValidity();

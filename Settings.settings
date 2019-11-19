@@ -23,10 +23,10 @@
     <Setting Name="VolumeFolderNameFormat" Type="System.String" Scope="User">
       <Value Profile="(Default)">{Number} - {Name}</Value>
     </Setting>
-    <Setting Name="ChapterNameFormat" Type="System.String" Scope="User">
+    <Setting Name="ChapterFileNameFormat" Type="System.String" Scope="User">
       <Value Profile="(Default)">{Id}-{Page} - {Name}</Value>
     </Setting>
-    <Setting Name="ImageNameFormat" Type="System.String" Scope="User">
+    <Setting Name="ImageFileNameFormat" Type="System.String" Scope="User">
       <Value Profile="(Default)">{Id}-{Page}-{Id_Image}</Value>
     </Setting>
     <Setting Name="DivideChapterByPages" Type="System.Boolean" Scope="User">
@@ -56,10 +56,10 @@
     <Setting Name="CreateIndex" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="IndexFileName" Type="System.String" Scope="User">
-      <Value Profile="(Default)">_Index</Value>
+    <Setting Name="IndexFileNameFormat" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{Name}_Index.txt</Value>
     </Setting>
-    <Setting Name="SourceFileName" Type="System.String" Scope="User">
+    <Setting Name="SourceFileNameFormat" Type="System.String" Scope="User">
       <Value Profile="(Default)">URLs</Value>
     </Setting>
     <Setting Name="ScrapeTags" Type="System.Boolean" Scope="User">
@@ -72,6 +72,12 @@
       <Value Profile="(Default)">Tags</Value>
     </Setting>
     <Setting Name="AuthorEqFolder" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="GetOnlyNovelInfo" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="KeepIndexInsideNovelFolder" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>

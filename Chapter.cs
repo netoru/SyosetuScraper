@@ -30,7 +30,7 @@ namespace SyosetuScraper
 
         public void CheckValidity()
         {
-            _doc = Scraping.GetPage(Link, Scraping.SyousetsuCookie);
+            _doc = Scraping.GetPage(Link);
 
             var cNameNode = _doc.DocumentNode.SelectSingleNode("//p[@class='novel_subtitle']");
             var chapterName = (cNameNode == null) ? string.Empty : cNameNode.InnerText.TrimStart().TrimEnd();
@@ -231,7 +231,7 @@ namespace SyosetuScraper
         {
             foreach (var page in Pages)
             {
-                var chapterPath = Settings.Default.ChapterNameFormat;
+                var chapterPath = Settings.Default.ChapterFileNameFormat;
                 chapterPath = chapterPath.Replace("{Id}", Id.ToString());
                 chapterPath = chapterPath.Replace("{Number}", Number.ToString());
                 chapterPath = chapterPath.Replace("{Page}", page.Key.ToString());
@@ -255,7 +255,7 @@ namespace SyosetuScraper
             {
                 foreach (var image in page.Value)
                 {
-                    var imagePath = Settings.Default.ChapterNameFormat;
+                    var imagePath = Settings.Default.ChapterFileNameFormat;
                     imagePath = imagePath.Replace("{Id}", Id.ToString());
                     imagePath = imagePath.Replace("{Number}", Number.ToString());
                     imagePath = imagePath.Replace("{Page}", page.Key.ToString());

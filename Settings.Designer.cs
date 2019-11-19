@@ -110,24 +110,24 @@ namespace SyosetuScraper {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("{Id}-{Page} - {Name}")]
-        public string ChapterNameFormat {
+        public string ChapterFileNameFormat {
             get {
-                return ((string)(this["ChapterNameFormat"]));
+                return ((string)(this["ChapterFileNameFormat"]));
             }
             set {
-                this["ChapterNameFormat"] = value;
+                this["ChapterFileNameFormat"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("{Id}-{Page}-{Id_Image}")]
-        public string ImageNameFormat {
+        public string ImageFileNameFormat {
             get {
-                return ((string)(this["ImageNameFormat"]));
+                return ((string)(this["ImageFileNameFormat"]));
             }
             set {
-                this["ImageNameFormat"] = value;
+                this["ImageFileNameFormat"] = value;
             }
         }
         
@@ -241,25 +241,25 @@ namespace SyosetuScraper {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("_Index")]
-        public string IndexFileName {
+        [global::System.Configuration.DefaultSettingValueAttribute("{Name}_Index.txt")]
+        public string IndexFileNameFormat {
             get {
-                return ((string)(this["IndexFileName"]));
+                return ((string)(this["IndexFileNameFormat"]));
             }
             set {
-                this["IndexFileName"] = value;
+                this["IndexFileNameFormat"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("URLs")]
-        public string SourceFileName {
+        public string SourceFileNameFormat {
             get {
-                return ((string)(this["SourceFileName"]));
+                return ((string)(this["SourceFileNameFormat"]));
             }
             set {
-                this["SourceFileName"] = value;
+                this["SourceFileNameFormat"] = value;
             }
         }
         
@@ -308,6 +308,30 @@ namespace SyosetuScraper {
             }
             set {
                 this["AuthorEqFolder"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool GetOnlyNovelInfo {
+            get {
+                return ((bool)(this["GetOnlyNovelInfo"]));
+            }
+            set {
+                this["GetOnlyNovelInfo"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool KeepIndexInsideNovelFolder {
+            get {
+                return ((bool)(this["KeepIndexInsideNovelFolder"]));
+            }
+            set {
+                this["KeepIndexInsideNovelFolder"] = value;
             }
         }
     }

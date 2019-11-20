@@ -57,7 +57,7 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="IndexFileNameFormat" Type="System.String" Scope="User">
-      <Value Profile="(Default)">{Name}_Index.txt</Value>
+      <Value Profile="(Default)">_Index.txt</Value>
     </Setting>
     <Setting Name="SourceFileNameFormat" Type="System.String" Scope="User">
       <Value Profile="(Default)">URLs</Value>
@@ -75,10 +75,10 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="GetOnlyNovelInfo" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
+      <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="KeepIndexInsideNovelFolder" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
+      <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>
 </SettingsFile>

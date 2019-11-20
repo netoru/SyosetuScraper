@@ -241,7 +241,7 @@ namespace SyosetuScraper {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("{Name}_Index.txt")]
+        [global::System.Configuration.DefaultSettingValueAttribute("_Index.txt")]
         public string IndexFileNameFormat {
             get {
                 return ((string)(this["IndexFileNameFormat"]));
@@ -313,7 +313,7 @@ namespace SyosetuScraper {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool GetOnlyNovelInfo {
             get {
                 return ((bool)(this["GetOnlyNovelInfo"]));
@@ -325,7 +325,7 @@ namespace SyosetuScraper {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool KeepIndexInsideNovelFolder {
             get {
                 return ((bool)(this["KeepIndexInsideNovelFolder"]));

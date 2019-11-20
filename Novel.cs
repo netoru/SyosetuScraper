@@ -233,8 +233,10 @@ namespace SyosetuScraper
             indexPath = indexPath.Replace("{Type}", Type);
             indexPath = indexPath.Replace("{Series}", Series);
 
-            if (!Settings.Default.KeepIndexInsideNovelFolder) 
+            if (!Settings.Default.KeepIndexInsideNovelFolder)
                 path = Settings.Default.SavePath;
+            else
+                path += "\\";
 
             path += CheckChars(indexPath);
 

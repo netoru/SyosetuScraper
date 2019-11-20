@@ -132,6 +132,12 @@ namespace SyosetuScraper
 
             input = input.Replace("\n", " ");
             input = input.Replace("&nbsp;", " ");
+            input = input.Replace("　", " ");
+
+            //・
+            //.
+            // /
+
 
             while (input.Contains("  "))
                 input = input.Replace("  ", " ");
@@ -168,7 +174,7 @@ namespace SyosetuScraper
 
             if (Settings.Default.ScrapeTags)
             {
-                var tagsLine = "Tags:";
+                var tagsLine = "Tags: ";
 
                 for (int i = 0; i < Tags.Count; i++)
                 {

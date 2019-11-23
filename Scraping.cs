@@ -25,10 +25,10 @@ namespace SyosetuScraper
             if (string.IsNullOrEmpty(Settings.Default.SavePath) || !Directory.Exists(Settings.Default.SavePath))
                 Settings.Default.SavePath = _defaultSavePath;
 
-            if (string.IsNullOrEmpty(Settings.Default.SourceFileNameFormat))
-                Settings.Default.SourceFileNameFormat = "URLs";
+            if (string.IsNullOrEmpty(Settings.Default.URLsFileNameFormat))
+                Settings.Default.URLsFileNameFormat = "URLs";
 
-            var source = Settings.Default.SavePath + Settings.Default.SourceFileNameFormat + ".txt";
+            var source = Settings.Default.SavePath + Settings.Default.URLsFileNameFormat + ".txt";
 
             if (!File.Exists(source))            
                 return false;            

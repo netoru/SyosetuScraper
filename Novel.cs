@@ -19,27 +19,30 @@ namespace SyosetuScraper
         public string Type { get; private set; }
         public string Link { get; private set; }
         public string AuthorLink { get; private set; }
-        public string InfotopLink { get; private set; }
+        public string Status { get; private set; }
+        public DateTime? PublicationDate { get; private set; }
+        public DateTime? LatestUpdate { get; private set; }
+        public HtmlDocument InfoTopDoc { get; private set; }
         public List<Volume> Volumes { get; private set; }
         public HashSet<string> Tags { get; private set; }
-        public HtmlDocument _doc { get; private set; }
+        public HtmlDocument NovelDoc { get; private set; }
         public bool IsValid => (Name != "エラー") ? true : false;
         public string TableOfContents => GetToC();
 
-        public Novel(string getNick, string getLink, HtmlDocument getDoc) => (Nickname, Link, _doc) = (getNick, getLink, getDoc);
+        public Novel(string getNick, string getLink, HtmlDocument getDoc) => (Nickname, Link, NovelDoc) = (getNick, getLink, getDoc);
 
         public void Setup()
         {
             Volumes = new List<Volume>();
 
-            Name = SearchDoc("//p[@class='novel_title']");
+            Name = SearchNovelDoc("//p[@class='novel_title']");
 
             if (Name == "エラー")
                 return;
 
-            Series = SearchDoc("//p[@class='series_title']");
-            Author = SearchDoc("//div[@class='novel_writername']", true);
-            Description = SearchDoc("//div[@id='novel_ex']");
+            Series = SearchNovelDoc("//p[@class='series_title']");
+            Author = SearchNovelDoc("//div[@class='novel_writername']", true);
+            Description = SearchNovelDoc("//div[@id='novel_ex']");
 
             var groups = Regex.Match(Link, @".+\/(\w+)\.syosetu\.com\/(\w+)\/").Groups;
 
@@ -53,23 +56,44 @@ namespace SyosetuScraper
                 throw;
             }
 
-            if (Settings.Default.ScrapeTags)            
-                GetTags();            
+            if (Settings.Default.ScrapeAdditionalNovelInfo || Settings.Default.ScrapeTags)
+            {
+                var infoTopLink = Link.Replace(Id, "novelview/infotop/ncode/" + Id);
+                InfoTopDoc = Scraping.GetPage(infoTopLink);
+
+                if (Settings.Default.ScrapeAdditionalNovelInfo)
+                    GetMoreInfo();
+
+                if (Settings.Default.ScrapeTags)
+                    GetTags();
+            }
 
             GetNovel();
         }
 
-        private string SearchDoc(string xpath, bool repStr = false, string oldStr = "作者：", string newStr = "")
+        private string SearchNovelDoc(string xpath, bool repStr = false, string oldStr = "作者：", string newStr = "")
         {
-            var resNode = _doc.DocumentNode.SelectSingleNode(xpath);
+            var resNode = NovelDoc.DocumentNode.SelectSingleNode(xpath);
             var result = (resNode == null) ? "エラー" : resNode.InnerText.TrimStart().TrimEnd();
             result = repStr ? result.Replace(oldStr, newStr) : result;
             return result;
         }
 
+        private HtmlNode SearchInfoTopDoc(string searchInnerText, string nodeCollection = "//tr", string returnNode = "td")
+        {
+            var trNodes = InfoTopDoc.DocumentNode.SelectNodes(nodeCollection);
+
+            foreach (var trNode in trNodes)
+                foreach (var item in trNode.ChildNodes)
+                    if (item.InnerText == searchInnerText)
+                        return trNode.SelectSingleNode(returnNode);
+
+            return HtmlNode.CreateNode("");
+        }
+
         private void GetNovel()
         {
-            var indexNode = _doc.DocumentNode.SelectNodes("//div[@class='index_box']");
+            var indexNode = NovelDoc.DocumentNode.SelectNodes("//div[@class='index_box']");
 
             if (indexNode == null)
                 return;
@@ -115,21 +139,7 @@ namespace SyosetuScraper
 
         private void GetTags()
         {
-            var infoTopLink = Link.Replace(Id, "novelview/infotop/ncode/" + Id);
-            var infoTopDoc = Scraping.GetPage(infoTopLink);
-
-            var trNodes = infoTopDoc.DocumentNode.SelectNodes("//tr");
-            HtmlNode tdNode = HtmlNode.CreateNode("");
-
-            foreach (var trNode in trNodes)
-                foreach (var item in trNode.ChildNodes)
-                    if (item.InnerText == "キーワード")
-                    {
-                        tdNode = trNode.SelectSingleNode("td");
-                        break;
-                    }
-
-            var input = tdNode.InnerText;
+            var input = SearchInfoTopDoc("キーワード").InnerText;
 
             if (string.IsNullOrEmpty(input))
                 return;
@@ -173,6 +183,49 @@ namespace SyosetuScraper
             }
         }
 
+        private void GetMoreInfo()
+        {
+            /*
+<span id="noveltype">完結済</span>全35部分
+<span id="noveltype_notend">連載中</span>全33部分
+statNode    -> Name: span; InnerText: 完結済
+NextSibling -> Name: #text; InnerText: 全35部分\n
+            */
+
+            var statNode = InfoTopDoc.DocumentNode.SelectSingleNode("//span[@id='noveltype']");
+
+            if (statNode == null)
+                statNode = InfoTopDoc.DocumentNode.SelectSingleNode("//span[@id='noveltype_notend']");
+
+            Status = "";
+
+            var chk = SearchInfoTopDoc("掲載日");
+
+            var pDate = (chk != null) ? chk.InnerText : string.Empty;
+
+            if (!string.IsNullOrEmpty(pDate))
+                PublicationDate = ConvertJPDate(pDate);
+
+            chk = SearchInfoTopDoc("最新部分掲載日");
+
+            if (chk == null)
+                chk = SearchInfoTopDoc("最終部分掲載日");
+
+            var lUpdate = (chk != null) ? chk.InnerText : string.Empty;
+
+            if (!string.IsNullOrEmpty(pDate))
+                LatestUpdate = ConvertJPDate(lUpdate);
+        }
+
+        private DateTime ConvertJPDate(string jpDate)
+        {
+            var pattern = @"(?<Year>\d{4})年.*(?<Month>\d{2})月.*(?<Day>\d{2})日.*(?<Hours>\d{2})時.*(?<Minutes>\d{2})分";
+            var res = Regex.Match(jpDate, pattern).Groups;
+
+            return new DateTime(Convert.ToInt32(res["Year"].Value), Convert.ToInt32(res["Month"].Value), 
+                Convert.ToInt32(res["Day"].Value), Convert.ToInt32(res["Hours"].Value), Convert.ToInt32(res["Minutes"].Value), 00);
+        }
+
         public override string ToString()
         {
             var txt = new StringBuilder();
@@ -181,8 +234,16 @@ namespace SyosetuScraper
             if (Series != "エラー") txt.AppendLine("Series: " + Series);
             txt.AppendLine("Author: " + Author);
             txt.AppendLine("Link: " + Link);
-            txt.AppendLine("Status: " + Link);
-            if (Series != "エラー") txt.AppendLine("Link: " + Link);
+
+            if (!string.IsNullOrEmpty(Status)) 
+                txt.AppendLine("Status: " + Status);
+
+            if (PublicationDate.HasValue) 
+                txt.AppendLine("Publication Date: " + PublicationDate.Value.ToString(Settings.Default.DateTimeFormat));
+
+            if (LatestUpdate.HasValue) 
+                txt.AppendLine("Latest Update: " + LatestUpdate.Value.ToString(Settings.Default.DateTimeFormat));
+
             txt.AppendLine();
             txt.AppendLine("Description:");
             txt.AppendLine(Description);

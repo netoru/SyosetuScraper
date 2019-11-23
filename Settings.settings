@@ -12,7 +12,7 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="VolumeEqFolder" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
+      <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="TypeEqFolder" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
@@ -59,7 +59,7 @@
     <Setting Name="IndexFileNameFormat" Type="System.String" Scope="User">
       <Value Profile="(Default)">_Index.txt</Value>
     </Setting>
-    <Setting Name="SourceFileNameFormat" Type="System.String" Scope="User">
+    <Setting Name="URLsFileNameFormat" Type="System.String" Scope="User">
       <Value Profile="(Default)">URLs</Value>
     </Setting>
     <Setting Name="ScrapeTags" Type="System.Boolean" Scope="User">
@@ -88,6 +88,12 @@
     </Setting>
     <Setting Name="AppendUnknownTags" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="ScrapeAdditionalNovelInfo" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="DateTimeFormat" Type="System.String" Scope="User">
+      <Value Profile="(Default)">dd/MM/yyyy</Value>
     </Setting>
   </Settings>
 </SettingsFile>

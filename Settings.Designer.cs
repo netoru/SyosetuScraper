@@ -61,7 +61,7 @@ namespace SyosetuScraper {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool VolumeEqFolder {
             get {
                 return ((bool)(this["VolumeEqFolder"]));
@@ -254,12 +254,12 @@ namespace SyosetuScraper {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("URLs")]
-        public string SourceFileNameFormat {
+        public string URLsFileNameFormat {
             get {
-                return ((string)(this["SourceFileNameFormat"]));
+                return ((string)(this["URLsFileNameFormat"]));
             }
             set {
-                this["SourceFileNameFormat"] = value;
+                this["URLsFileNameFormat"] = value;
             }
         }
         
@@ -368,6 +368,30 @@ namespace SyosetuScraper {
             }
             set {
                 this["AppendUnknownTags"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ScrapeAdditionalNovelInfo {
+            get {
+                return ((bool)(this["ScrapeAdditionalNovelInfo"]));
+            }
+            set {
+                this["ScrapeAdditionalNovelInfo"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("dd/MM/yyyy")]
+        public string DateTimeFormat {
+            get {
+                return ((string)(this["DateTimeFormat"]));
+            }
+            set {
+                this["DateTimeFormat"] = value;
             }
         }
     }

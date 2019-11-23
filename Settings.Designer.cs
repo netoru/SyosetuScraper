@@ -334,5 +334,41 @@ namespace SyosetuScraper {
                 this["KeepIndexInsideNovelFolder"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool SaveUnknownTags {
+            get {
+                return ((bool)(this["SaveUnknownTags"]));
+            }
+            set {
+                this["SaveUnknownTags"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("UnknownTags.txt")]
+        public string UnknownTagsFileName {
+            get {
+                return ((string)(this["UnknownTagsFileName"]));
+            }
+            set {
+                this["UnknownTagsFileName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AppendUnknownTags {
+            get {
+                return ((bool)(this["AppendUnknownTags"]));
+            }
+            set {
+                this["AppendUnknownTags"] = value;
+            }
+        }
     }
 }

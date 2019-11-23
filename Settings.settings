@@ -80,5 +80,14 @@
     <Setting Name="KeepIndexInsideNovelFolder" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
+    <Setting Name="SaveUnknownTags" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="UnknownTagsFileName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">UnknownTags.txt</Value>
+    </Setting>
+    <Setting Name="AppendUnknownTags" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

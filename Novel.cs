@@ -33,6 +33,10 @@ namespace SyosetuScraper
             Volumes = new List<Volume>();
 
             Name = SearchDoc("//p[@class='novel_title']");
+
+            if (Name == "エラー")
+                return;
+
             Series = SearchDoc("//p[@class='series_title']");
             Author = SearchDoc("//div[@class='novel_writername']", true);
             Description = SearchDoc("//div[@id='novel_ex']");
@@ -130,14 +134,15 @@ namespace SyosetuScraper
             if (string.IsNullOrEmpty(input))
                 return;
 
-            input = input.Replace("\n", " ");
-            input = input.Replace("&nbsp;", " ");
-            input = input.Replace("　", " ");
+            //Normalize characters like: Ｓｙｏｓｅｔｕ
+            //into: Syosetu
+            input = input.Normalize(NormalizationForm.FormKC).ToUpper();
 
-            //・
-            //.
-            // /
+            //annoying garbage
+            var replaceables = new List<string>() { "\n", "&nbsp;", "　", "・", ".", "/", "(", ")", "\t" };
 
+            foreach (var item in replaceables)
+                input = input.Replace(item, " ");
 
             while (input.Contains("  "))
                 input = input.Replace("  ", " ");
@@ -152,10 +157,19 @@ namespace SyosetuScraper
                 if (string.IsNullOrEmpty(originalWords[i]))
                     continue;
 
-                if (Settings.Default.ReplaceKnownTags && Scraping.KnownTags.ContainsKey(originalWords[i]))
-                    Tags.Add(Scraping.KnownTags[originalWords[i]]);
-                else
-                    Tags.Add(originalWords[i]);
+                switch ((Settings.Default.ReplaceKnownTags, Scraping.KnownTags.ContainsKey(originalWords[i])))
+                {
+                    case (true, true):
+                        Tags.Add(Scraping.KnownTags[originalWords[i]]);
+                        break;
+                    case (true, false):
+                        Tags.Add(originalWords[i]);
+                        Scraping.UnknownTags.Add(originalWords[i]);
+                        break;
+                    default:
+                        Tags.Add(originalWords[i]);
+                        break;
+                }
             }
         }
 
@@ -167,6 +181,8 @@ namespace SyosetuScraper
             if (Series != "エラー") txt.AppendLine("Series: " + Series);
             txt.AppendLine("Author: " + Author);
             txt.AppendLine("Link: " + Link);
+            txt.AppendLine("Status: " + Link);
+            if (Series != "エラー") txt.AppendLine("Link: " + Link);
             txt.AppendLine();
             txt.AppendLine("Description:");
             txt.AppendLine(Description);

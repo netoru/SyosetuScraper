@@ -12,6 +12,7 @@ namespace SyosetuScraper
     class Scraping
     {
         public static Dictionary<string, string> KnownTags { get; } = new Dictionary<string, string>();
+        public static HashSet<string> UnknownTags { get; } = new HashSet<string>();
         public static CookieContainer SyousetsuCookie { get; } = new CookieContainer();
 
         private readonly static string _defaultSavePath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + @"\Syosetu Novels\";
@@ -70,6 +71,20 @@ namespace SyosetuScraper
 
             foreach (var novel in _novels)
                 novel.Save();
+
+            if (UnknownTags.Count > 0 && Settings.Default.SaveUnknownTags)
+            {
+                var path = Settings.Default.SavePath + Novel.CheckChars(Settings.Default.UnknownTagsFileName);
+
+                if (!File.Exists(path))
+                    using (var tw = new StreamWriter(path))
+                        foreach (var item in UnknownTags)
+                            tw.WriteLine(item);
+                else if (File.Exists(path))
+                    using (var tw = new StreamWriter(path, Settings.Default.AppendUnknownTags))
+                        foreach (var item in UnknownTags)
+                            tw.WriteLine(item);
+            }
 
             return true;
         }
@@ -135,6 +150,8 @@ namespace SyosetuScraper
         {
             var path = Settings.Default.SavePath + Settings.Default.KnownTagsFileName + ".txt";
 
+            if (!File.Exists(path)) return;
+
             var lines = File.ReadAllLines(path);
 
             foreach (var line in lines)
@@ -142,9 +159,12 @@ namespace SyosetuScraper
                 var x = line.Split(";");
 
                 if (x.Length < 2) continue;
-                if (KnownTags.ContainsKey(x[0])) continue;
 
-                KnownTags.Add(x[0], x[1]);
+                var key = x[0].Normalize(NormalizationForm.FormKC).ToUpper();
+
+                if (KnownTags.ContainsKey(key)) continue;
+
+                KnownTags.Add(key, x[1]);
             }
         }
     }

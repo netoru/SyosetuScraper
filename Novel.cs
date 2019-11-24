@@ -186,8 +186,13 @@ namespace SyosetuScraper
         private void GetMoreInfo()
         {
             /*
+completed
 <span id="noveltype">完結済</span>全35部分
+ongoing
 <span id="noveltype_notend">連載中</span>全33部分
+one shot
+<span id="noveltype">短編</span>
+
 statNode    -> Name: span; InnerText: 完結済
 NextSibling -> Name: #text; InnerText: 全35部分\n
             */
@@ -197,7 +202,8 @@ NextSibling -> Name: #text; InnerText: 全35部分\n
             if (statNode == null)
                 statNode = InfoTopDoc.DocumentNode.SelectSingleNode("//span[@id='noveltype_notend']");
 
-            Status = "";
+            if (statNode != null)
+                Status = GetStatus(statNode);
 
             var chk = SearchInfoTopDoc("掲載日");
 
@@ -215,6 +221,40 @@ NextSibling -> Name: #text; InnerText: 全35部分\n
 
             if (!string.IsNullOrEmpty(pDate))
                 LatestUpdate = ConvertJPDate(lUpdate);
+        }
+
+        private string GetStatus(HtmlNode node)
+        {
+            string res;
+            switch (node.InnerText)
+            {
+                case "完結済":
+                    res = "completed";
+                    break;
+                case "連載中":
+                    res = "ongoing";
+                    break;
+                case "短編":
+                    res = "one-shot";
+                    break;
+                default:
+                    return string.Empty;
+            }
+
+            var chapNode = node.NextSibling;
+
+            if (chapNode == null)
+                return res;
+
+            var count = Regex.Match(chapNode.InnerText, "全(\\d+)部分").Groups;
+
+            if (count.Count < 2)
+                return res;
+
+            if (string.IsNullOrEmpty(count[1].Value))
+                return res;
+
+            return res + $", {count[1].Value} chapters";
         }
 
         private DateTime ConvertJPDate(string jpDate)

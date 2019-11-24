@@ -394,5 +394,29 @@ namespace SyosetuScraper {
                 this["DateTimeFormat"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("60")]
+        public int OngoingStatusLength {
+            get {
+                return ((int)(this["OngoingStatusLength"]));
+            }
+            set {
+                this["OngoingStatusLength"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("365")]
+        public int HiatusStatusLength {
+            get {
+                return ((int)(this["HiatusStatusLength"]));
+            }
+            set {
+                this["HiatusStatusLength"] = value;
+            }
+        }
     }
 }

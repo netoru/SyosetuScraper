@@ -185,18 +185,6 @@ namespace SyosetuScraper
 
         private void GetMoreInfo()
         {
-            /*
-completed
-<span id="noveltype">完結済</span>全35部分
-ongoing
-<span id="noveltype_notend">連載中</span>全33部分
-one shot
-<span id="noveltype">短編</span>
-
-statNode    -> Name: span; InnerText: 完結済
-NextSibling -> Name: #text; InnerText: 全35部分\n
-            */
-
             var statNode = InfoTopDoc.DocumentNode.SelectSingleNode("//span[@id='noveltype']");
 
             if (statNode == null)
@@ -221,6 +209,20 @@ NextSibling -> Name: #text; InnerText: 全35部分\n
 
             if (!string.IsNullOrEmpty(pDate))
                 LatestUpdate = ConvertJPDate(lUpdate);
+
+            if (Status != "ongoing")
+                return;
+
+            if (LatestUpdate.HasValue)
+                if ((DateTime.Now - LatestUpdate.Value).TotalDays <= Settings.Default.OngoingStatusLength)
+                    return;
+
+            Status = Status.Replace("ongoing", "hiatus");
+
+            if ((DateTime.Now - LatestUpdate.Value).TotalDays <= Settings.Default.HiatusStatusLength)
+                return;
+
+            Status = Status.Replace("hiatus", "dropped");
         }
 
         private string GetStatus(HtmlNode node)

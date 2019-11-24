@@ -95,5 +95,11 @@
     <Setting Name="DateTimeFormat" Type="System.String" Scope="User">
       <Value Profile="(Default)">dd/MM/yyyy</Value>
     </Setting>
+    <Setting Name="OngoingStatusLength" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">60</Value>
+    </Setting>
+    <Setting Name="HiatusStatusLength" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">365</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

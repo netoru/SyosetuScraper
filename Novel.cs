@@ -29,6 +29,8 @@ namespace SyosetuScraper
         public bool IsValid => (Name != "エラー") ? true : false;
         public string TableOfContents => GetToC();
 
+        private string _novelSavePath = "";
+
         public Novel(string getNick, string getLink, HtmlDocument getDoc) => (Nickname, Link, NovelDoc) = (getNick, getLink, getDoc);
 
         public void Setup()
@@ -68,7 +70,11 @@ namespace SyosetuScraper
                     GetTags();
             }
 
+            CreateNovelFolder();
+
             GetNovel();
+
+            CreateIndex();
         }
 
         private string SearchNovelDoc(string xpath, bool repStr = false, string oldStr = "作者：", string newStr = "")
@@ -115,7 +121,7 @@ namespace SyosetuScraper
             }
 
             if (Volumes.Count == 0)
-                Volumes.Add(new Volume(-1, -1, string.Empty, Link));
+                Volumes.Add(new Volume(-1, -1, string.Empty, Link, _novelSavePath));
 
             foreach (var item in Volumes)
             {
@@ -313,51 +319,51 @@ namespace SyosetuScraper
             return txt.ToString();
         }
 
-        public void Save()
+        private void CreateNovelFolder()
         {
-            string path = Settings.Default.SavePath;
-            
+            _novelSavePath = Settings.Default.SavePath;
+
             if (!Settings.Default.GetOnlyNovelInfo)
             {
-                if (Settings.Default.TypeEqFolder) path += CheckChars(Type) + "\\";
-                if (Settings.Default.SeriesEqFolder) path += CheckChars(Series) + "\\";
-                if (Settings.Default.AuthorEqFolder) path += CheckChars(Author) + "\\";
+                if (Settings.Default.TypeEqFolder) _novelSavePath += CheckChars(Type) + "\\";
+                if (Settings.Default.SeriesEqFolder) _novelSavePath += CheckChars(Series) + "\\";
+                if (Settings.Default.AuthorEqFolder) _novelSavePath += CheckChars(Author) + "\\";
 
-                var novelPath = Settings.Default.NovelFolderNameFormat;
-                novelPath = novelPath.Replace("{Id}", Id.ToString());
-                novelPath = novelPath.Replace("{Name}", Name);
-                novelPath = novelPath.Replace("{Author}", Author);
-                novelPath = novelPath.Replace("{Type}", Type);
-                novelPath = novelPath.Replace("{Series}", Series);
+                var novelFolderName = Settings.Default.NovelFolderNameFormat;
+                novelFolderName = novelFolderName.Replace("{Id}", Id.ToString());
+                novelFolderName = novelFolderName.Replace("{Name}", Name);
+                novelFolderName = novelFolderName.Replace("{Author}", Author);
+                novelFolderName = novelFolderName.Replace("{Type}", Type);
+                novelFolderName = novelFolderName.Replace("{Series}", Series);
 
                 if (!string.IsNullOrEmpty(Nickname))
-                    novelPath = novelPath.Replace("{Nickname}", Nickname);
+                    novelFolderName = novelFolderName.Replace("{Nickname}", Nickname);
                 else
-                    novelPath = novelPath.Replace("{Nickname}", "");
+                    novelFolderName = novelFolderName.Replace("{Nickname}", "");
 
-                path += CheckChars(novelPath);
-                Directory.CreateDirectory(path);
-
-                foreach (var volume in Volumes)
-                    volume.Save(path);
+                _novelSavePath += CheckChars(novelFolderName);
+                Directory.CreateDirectory(_novelSavePath);
             }
+        }
 
+        private void CreateIndex()
+        {
             if (!Settings.Default.CreateIndex)
                 return;
 
-            var indexPath = Settings.Default.IndexFileNameFormat;
-            indexPath = indexPath.Replace("{Id}", Id.ToString());
-            indexPath = indexPath.Replace("{Name}", Name);
-            indexPath = indexPath.Replace("{Author}", Author);
-            indexPath = indexPath.Replace("{Type}", Type);
-            indexPath = indexPath.Replace("{Series}", Series);
+            var indexFileName = Settings.Default.IndexFileNameFormat;
+            indexFileName = indexFileName.Replace("{Id}", Id.ToString());
+            indexFileName = indexFileName.Replace("{Name}", Name);
+            indexFileName = indexFileName.Replace("{Author}", Author);
+            indexFileName = indexFileName.Replace("{Type}", Type);
+            indexFileName = indexFileName.Replace("{Series}", Series);
 
-            if (!Settings.Default.KeepIndexInsideNovelFolder)
-                path = Settings.Default.SavePath;
-            else
-                path += "\\";
+            var path = Settings.Default.SavePath;
 
-            path += CheckChars(indexPath);
+            if (Settings.Default.KeepIndexInsideNovelFolder)
+                path = _novelSavePath + "\\";
+
+            path += CheckChars(indexFileName);
 
             if (!File.Exists(path))
             {

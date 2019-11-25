@@ -22,11 +22,18 @@ namespace SyosetuScraper
         public NestDictionary<int, string, Image> Images { get; } = new NestDictionary<int, string, Image>();
 
         private HtmlDocument _doc;
-
         private HtmlNodeCollection _header;
         private HtmlNodeCollection _footnotes;
+        private string _chapterPath;
 
-        public Chapter(int getId, int getNumber, string getName, string getLink) => (Id, Number, Name, Link) = (getId, getNumber, getName, getLink);
+        public Chapter(int getId, int getNumber, string getName, string getLink, string getPath)
+        {
+            Id = getId;
+            Number = getNumber;
+            Name = getName;
+            Link = getLink; 
+            _chapterPath = getPath;
+        }
 
         public void CheckValidity()
         {
@@ -80,22 +87,20 @@ namespace SyosetuScraper
                 var anoteNode = _doc.DocumentNode.SelectSingleNode("//div[@id='novel_a']");
                 var aLineNodes = anoteNode?.SelectNodes("./p[starts-with(@id, 'La')]");
 
-                if (aLineNodes == null)
-                    return;
+                if (aLineNodes != null)
+                {
+                    var aNode = HtmlNode.CreateNode("<p id=\"La0\">================Author Note================</p>");
+                    aLineNodes.Insert(0, aNode);
 
-                var aNode = HtmlNode.CreateNode("<p id=\"La0\">================Author Note================</p>");
-                aLineNodes.Insert(0, aNode);
-
-                DivideInPages(aLineNodes, ref chk, ref pageIndex);
+                    DivideInPages(aLineNodes, ref chk, ref pageIndex);
+                }
             }
 
-            if (!Settings.Default.IncludeFootnotes)
-                return;
+            if (Settings.Default.IncludeFootnotes)
+                if (_footnotes == null)
+                    DivideInPages(_footnotes, ref chk, ref pageIndex);
 
-            if (_footnotes == null)
-                return;
-            
-            DivideInPages(_footnotes, ref chk, ref pageIndex);
+            Save();
         }
 
         private Image GetImage(HtmlNode node)
@@ -227,26 +232,26 @@ namespace SyosetuScraper
             return txt.ToString();
         }
 
-        public void Save(string path)
+        public void Save()
         {
             foreach (var page in Pages)
             {
-                var chapterPath = Settings.Default.ChapterFileNameFormat;
-                chapterPath = chapterPath.Replace("{Id}", Id.ToString());
-                chapterPath = chapterPath.Replace("{Number}", Number.ToString());
-                chapterPath = chapterPath.Replace("{Page}", page.Key.ToString());
-                chapterPath = chapterPath.Replace("{Name}", Name);
+                var chapterFileName = Settings.Default.ChapterFileNameFormat;
+                chapterFileName = chapterFileName.Replace("{Id}", Id.ToString());
+                chapterFileName = chapterFileName.Replace("{Number}", Number.ToString());
+                chapterFileName = chapterFileName.Replace("{Page}", page.Key.ToString());
+                chapterFileName = chapterFileName.Replace("{Name}", Name);
 
-                chapterPath = $"{path}\\{Novel.CheckChars(chapterPath)}.txt";
+                chapterFileName = $"{_chapterPath}\\{Novel.CheckChars(chapterFileName)}.txt";
 
-                if (!File.Exists(chapterPath))
+                if (!File.Exists(chapterFileName))
                 {
-                    TextWriter tw = new StreamWriter(chapterPath);
+                    TextWriter tw = new StreamWriter(chapterFileName);
                     tw.WriteLine(ToString(page.Key));
                     tw.Close();
                 }
-                else if (File.Exists(chapterPath))
-                    using (var tw = new StreamWriter(chapterPath, false))
+                else if (File.Exists(chapterFileName))
+                    using (var tw = new StreamWriter(chapterFileName, false))
                         tw.WriteLine(ToString(page.Key));
             }
 
@@ -261,7 +266,7 @@ namespace SyosetuScraper
                     imagePath = imagePath.Replace("{Name}", Name);
                     imagePath = imagePath.Replace("{Id_Image}", image.Key);
 
-                    imagePath = $"{path}\\{Novel.CheckChars(imagePath)}.png";
+                    imagePath = $"{_chapterPath}\\{Novel.CheckChars(imagePath)}.png";
                     image.Value.Save(imagePath, ImageFormat.Png);
                 }
             }

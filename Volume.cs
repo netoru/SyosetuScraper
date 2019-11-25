@@ -15,10 +15,21 @@ namespace SyosetuScraper
         private string _link { get; }
         public List<Chapter> Chapters { get; } = new List<Chapter>();
 
-        public Volume(int getId, int getNumber, string getName, string getLink) => (Id, Number, Name, _link) = (getId, getNumber, getName, getLink);
+        private string _volumePath;
+
+        public Volume(int getId, int getNumber, string getName, string getLink, string getPath)
+        {
+            Id = getId;
+            Number = getNumber;
+            Name = getName;
+            _link = getLink;
+            _volumePath = getPath;
+        }
 
         public void GetVolume(List<HtmlNode> list)
         {
+            DivideChaptersByVolume();
+
             for (int i = 0; i < list.Count; i++)
             {
                 var chapterNode = list[i].ChildNodes
@@ -36,11 +47,13 @@ namespace SyosetuScraper
                 if (!res)
                     continue;
 
-                Chapters.Add(new Chapter(chapterId, i + 1, chapterNode.InnerText, _link + chapterId + "/"));
+                Chapters.Add(new Chapter(chapterId, i + 1, chapterNode.InnerText, _link + chapterId + "/", _volumePath));
             }
 
             if (Settings.Default.GetOnlyNovelInfo)
                 return;
+
+            Directory.CreateDirectory(_volumePath);
 
             foreach (var chapter in Chapters)
             {
@@ -70,23 +83,18 @@ namespace SyosetuScraper
             return txt.ToString();
         }
 
-        public void Save(string path)
+        public void DivideChaptersByVolume()
         {
-            if (Settings.Default.VolumeEqFolder)
-                if (!string.IsNullOrEmpty(Name))
-                {
-                    var volumePath = Settings.Default.VolumeFolderNameFormat;
-                    volumePath = volumePath.Replace("{Id}", Id.ToString());
-                    volumePath = volumePath.Replace("{Number}", Number.ToString());
-                    volumePath = volumePath.Replace("{Name}", Name);
-                    volumePath = volumePath.Replace("{Chapters}", Chapters.Count.ToString());
+            if (!Settings.Default.VolumeEqFolder || string.IsNullOrEmpty(Name))
+                return;
 
-                    path += "\\" + Novel.CheckChars(volumePath);
-                    Directory.CreateDirectory(path);
-                }
+            var volumeFolderName = Settings.Default.VolumeFolderNameFormat;
+            volumeFolderName = volumeFolderName.Replace("{Id}", Id.ToString());
+            volumeFolderName = volumeFolderName.Replace("{Number}", Number.ToString());
+            volumeFolderName = volumeFolderName.Replace("{Name}", Name);
+            volumeFolderName = volumeFolderName.Replace("{Chapters}", Chapters.Count.ToString());
 
-            foreach (var chapter in Chapters)
-                chapter.Save(path);
+            _volumePath += "\\" + Novel.CheckChars(volumeFolderName);
         }
     }
 }

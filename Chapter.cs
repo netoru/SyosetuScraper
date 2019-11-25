@@ -24,7 +24,7 @@ namespace SyosetuScraper
         private HtmlDocument _doc;
         private HtmlNodeCollection _header;
         private HtmlNodeCollection _footnotes;
-        private string _chapterPath;
+        private readonly string _chapterPath;
 
         public Chapter(int getId, int getNumber, string getName, string getLink, string getPath)
         {

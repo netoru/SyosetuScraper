@@ -69,9 +69,6 @@ namespace SyosetuScraper
 
             Task.WaitAll(tasks);
 
-            foreach (var novel in _novels)
-                novel.Save();
-
             if (UnknownTags.Count > 0 && Settings.Default.SaveUnknownTags)
             {
                 var path = Settings.Default.SavePath + Novel.CheckChars(Settings.Default.UnknownTagsFileName);

@@ -116,7 +116,7 @@ namespace SyosetuScraper
                     continue;
                 var volName = node.InnerText.TrimStart().TrimEnd();
                 var volIndex = nodes.IndexOf(node);
-                Volumes.Add(new Volume(volIndex, i, volName, Link));
+                Volumes.Add(new Volume(volIndex, i, volName, Link, _novelSavePath));
                 i++;
             }
 

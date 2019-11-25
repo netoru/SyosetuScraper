@@ -149,7 +149,7 @@ namespace SyosetuScraper
             input = input.Normalize(NormalizationForm.FormKC).ToUpper();
 
             //annoying garbage
-            var replaceables = new List<string>() { "\n", "&nbsp;", "　", "・", ".", "/", "(", ")", "\t" };
+            var replaceables = new List<string>() { "\n", "&NBSP;", "　", "・", ".", "/", "(", ")", "\t" };
 
             foreach (var item in replaceables)
                 input = input.Replace(item, " ");
@@ -210,7 +210,7 @@ namespace SyosetuScraper
             if (!string.IsNullOrEmpty(pDate))
                 LatestUpdate = ConvertJPDate(lUpdate);
 
-            if (Status != "ongoing")
+            if (!Status.Contains("ongoing"))
                 return;
 
             if (LatestUpdate.HasValue)

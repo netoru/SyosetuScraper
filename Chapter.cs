@@ -250,7 +250,6 @@ namespace SyosetuScraper
                         tw.WriteLine(ToString(page.Key));
             }
 
-
             foreach (var page in Images)
             {
                 foreach (var image in page.Value)

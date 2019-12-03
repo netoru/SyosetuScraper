@@ -130,6 +130,7 @@ namespace SyosetuScraper
                 var indexFrom = item.Id + 1;
                 var indexTo = isLast ? nodes.Count() - indexFrom : Volumes[current + 1].Id - indexFrom;
                 item.GetVolume(nodes.GetRange(indexFrom, indexTo));
+                item.Forget();
             }
         }
 

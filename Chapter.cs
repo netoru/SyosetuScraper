@@ -17,9 +17,9 @@ namespace SyosetuScraper
         public int Number { get; }
         public string Name { get; }
         public string Link { get; }
-        public NestDictionary<int, string, string> Pages { get; } = new NestDictionary<int, string, string>();
+        public NestDictionary<int, string, string> Pages { get; private set; } = new NestDictionary<int, string, string>();
         public bool Valid { get; private set; } = false;
-        public NestDictionary<int, string, Image> Images { get; } = new NestDictionary<int, string, Image>();
+        public NestDictionary<int, string, Image> Images { get; private set; } = new NestDictionary<int, string, Image>();
 
         private HtmlDocument _doc;
         private HtmlNodeCollection _header;
@@ -270,6 +270,15 @@ namespace SyosetuScraper
                     image.Value.Save(imagePath, ImageFormat.Png);
                 }
             }
+        }
+
+        public void Forget()
+        {
+            Pages = new NestDictionary<int, string, string>();
+            Images = new NestDictionary<int, string, Image>();
+            _doc = null;
+            _header = null;
+            _footnotes = null;
         }
     }
 

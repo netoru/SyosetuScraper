@@ -13,7 +13,7 @@ namespace SyosetuScraper
         public int Number { get; }
         public string Name { get; }
         private string _link { get; }
-        public List<Chapter> Chapters { get; } = new List<Chapter>();
+        public List<Chapter> Chapters { get; private set; } = new List<Chapter>();
 
         private string _volumePath;
 
@@ -61,6 +61,8 @@ namespace SyosetuScraper
 
                 if (chapter.Valid)
                     chapter.GetChapter();
+
+                chapter.Forget();
             }
         }
 
@@ -96,5 +98,7 @@ namespace SyosetuScraper
 
             _volumePath += "\\" + Novel.CheckChars(volumeFolderName);
         }
+
+        public void Forget() => Chapters = new List<Chapter>();
     }
 }

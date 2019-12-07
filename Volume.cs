@@ -70,7 +70,7 @@ namespace SyosetuScraper
         {
             Chapters.Add(new Chapter(1, 0, Name, string.Empty, _volumePath));
             Chapters[0].GetChapter(node);
-            Chapters = null;
+            Chapters[0].Forget();
         }
 
         public override string ToString()
@@ -78,7 +78,7 @@ namespace SyosetuScraper
             var txt = new StringBuilder();
             var indent = "";
 
-            if (!string.IsNullOrEmpty(Name))
+            if (!string.IsNullOrEmpty(Name) && Id > -1)
             {
                 txt.AppendLine(Number + ". " + Name);
                 indent = "\t";
@@ -105,7 +105,5 @@ namespace SyosetuScraper
 
             _volumePath += "\\" + Novel.CheckChars(volumeFolderName);
         }
-
-        public void Forget() => Chapters = new List<Chapter>();
     }
 }

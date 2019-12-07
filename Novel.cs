@@ -111,10 +111,11 @@ namespace SyosetuScraper
         {
             var trNodes = InfoTopDoc.DocumentNode.SelectNodes(nodeCollection);
 
-            foreach (var trNode in trNodes)
-                foreach (var item in trNode.ChildNodes)
-                    if (item.InnerText == searchInnerText)
-                        return trNode.SelectSingleNode(returnNode);
+            if (trNodes != null)
+                foreach (var trNode in trNodes)
+                    foreach (var item in trNode.ChildNodes)
+                        if (item.InnerText == searchInnerText)
+                            return trNode.SelectSingleNode(returnNode);
 
             return HtmlNode.CreateNode("");
         }
@@ -156,7 +157,6 @@ namespace SyosetuScraper
                 var indexFrom = item.Id + 1;
                 var indexTo = isLast ? nodes.Count() - indexFrom : Volumes[current + 1].Id - indexFrom;
                 item.GetVolume(nodes.GetRange(indexFrom, indexTo));
-                item.Forget();
             }
         }
 
@@ -164,7 +164,6 @@ namespace SyosetuScraper
         {
             Volumes.Add(new Volume(-1, 1, Name, Link, _novelSavePath));
             Volumes[0].GetVolume(NovelDoc.DocumentNode.SelectSingleNode("//div[@id='novel_honbun']"));
-            Volumes[0].Forget();
         }
 
         private string GetToC()

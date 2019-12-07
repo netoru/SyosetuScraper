@@ -101,5 +101,8 @@
     <Setting Name="HiatusStatusLength" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">365</Value>
     </Setting>
+    <Setting Name="Workers" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">5</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

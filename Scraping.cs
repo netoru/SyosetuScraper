@@ -18,9 +18,9 @@ namespace SyosetuScraper
         private readonly static string _defaultSavePath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + @"\Syosetu Novels\";
         private static readonly Dictionary<string, string> _cookieIndx = new Dictionary<string, string>();
         private static readonly Dictionary<string, string> _urls = new Dictionary<string, string>();
-        private static readonly List<Novel> _novels = new List<Novel>();
+        private static readonly Stack<Novel> _novels = new Stack<Novel>();
 
-        public static async Task<bool> CrawlAsync()
+        public static void CrawlAsync()
         {
             if (string.IsNullOrEmpty(Settings.Default.SavePath) || !Directory.Exists(Settings.Default.SavePath))
                 Settings.Default.SavePath = _defaultSavePath;
@@ -31,7 +31,7 @@ namespace SyosetuScraper
             var source = Settings.Default.SavePath + Settings.Default.URLsFileNameFormat + ".txt";
 
             if (!File.Exists(source))            
-                return false;            
+                return;            
 
             GenerateCookies();
 
@@ -53,21 +53,18 @@ namespace SyosetuScraper
             }
 
             foreach (var url in _urls)
-                _novels.Add(new Novel(url.Value, url.Key, GetPage(url.Key)));
-
-            var tasks = new Task[_novels.Count];
-
-            var i = 0;
-            foreach (var novel in _novels)
+                _novels.Push(new Novel(url.Value, url.Key, GetPage(url.Key)));
+            
+            while (_novels.Count > 0)
             {
-                if (i >= _novels.Count)
-                    break;
+                var targets = new List<Novel>();
 
-                tasks[i] = Task.Run(() => novel.Setup());
-                i++;
+                for (int i = 0; i < Settings.Default.Workers; i++)
+                    if (_novels.Count != 0)
+                        targets.Add(_novels.Pop());
+
+                _ = Scrape(targets).Result;
             }
-
-            Task.WaitAll(tasks);
 
             if (UnknownTags.Count > 0 && Settings.Default.SaveUnknownTags)
             {
@@ -82,6 +79,23 @@ namespace SyosetuScraper
                         foreach (var item in UnknownTags)
                             tw.WriteLine(item);
             }
+        }
+
+        private static async Task<bool> Scrape(List<Novel> targets)
+        {
+            var tasks = new Task[targets.Count];
+
+            var i = 0;
+            foreach (var novel in targets)
+            {
+                if (i >= targets.Count)
+                    break;
+
+                tasks[i] = Task.Run(() => novel.Setup());
+                i++;
+            }
+
+            Task.WaitAll(tasks);
 
             return true;
         }

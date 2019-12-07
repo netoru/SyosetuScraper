@@ -55,26 +55,32 @@ namespace SyosetuScraper
             if (Convert.ToInt32(chapterId) != Id)
                 return;
 
-            _footnotes = new HtmlNodeCollection(_doc.DocumentNode);
-            //handled chapter name here since otherwise it wouldn't show up in the characther count
-            _header = new HtmlNodeCollection(_doc.DocumentNode);
-            var hNode1 = HtmlNode.CreateNode($"<p id=\"Lh0\">{Name}</p>");
-            var hNode2 = HtmlNode.CreateNode("================================");
-            _header.Insert(0, hNode1);
-            _header.Insert(1, hNode2);
-
             Valid = true;
         }
 
-        public void GetChapter()
+        public void GetChapter(HtmlNode chapterNode = null)
         {
+            if (chapterNode != null)
+                _doc = new HtmlDocument();
+
             var chk = 0;
             var pageIndex = 0;
 
-            if (Settings.Default.IncludeChapterTitle)
-                DivideInPages(_header, ref chk, ref pageIndex);
+            _footnotes = new HtmlNodeCollection(_doc.DocumentNode);
 
-            var chapterNode = _doc.DocumentNode.SelectSingleNode("//div[@id='novel_honbun']");
+            if (Settings.Default.IncludeChapterTitle)
+            {
+                _header = new HtmlNodeCollection(_doc.DocumentNode);
+                var hNode1 = HtmlNode.CreateNode($"<p id=\"Lh0\">{Name}</p>");
+                var hNode2 = HtmlNode.CreateNode("================================");
+                _header.Insert(0, hNode1);
+                _header.Insert(1, hNode2);
+                DivideInPages(_header, ref chk, ref pageIndex);
+            }
+
+            if(chapterNode == null)
+                chapterNode = _doc.DocumentNode.SelectSingleNode("//div[@id='novel_honbun']");
+
             var lineNodes = chapterNode?.SelectNodes("./p[starts-with(@id, 'L')]");
 
             if (lineNodes == null)
@@ -97,7 +103,7 @@ namespace SyosetuScraper
             }
 
             if (Settings.Default.IncludeFootnotes)
-                if (_footnotes == null)
+                if (_footnotes.Count > 0)
                     DivideInPages(_footnotes, ref chk, ref pageIndex);
 
             Save();
@@ -274,8 +280,8 @@ namespace SyosetuScraper
 
         public void Forget()
         {
-            Pages = new NestDictionary<int, string, string>();
-            Images = new NestDictionary<int, string, Image>();
+            Pages = null;
+            Images = null;
             _doc = null;
             _header = null;
             _footnotes = null;

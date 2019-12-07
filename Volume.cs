@@ -66,6 +66,13 @@ namespace SyosetuScraper
             }
         }
 
+        public void GetVolume(HtmlNode node)
+        {
+            Chapters.Add(new Chapter(1, 0, Name, string.Empty, _volumePath));
+            Chapters[0].GetChapter(node);
+            Chapters = null;
+        }
+
         public override string ToString()
         {
             var txt = new StringBuilder();

@@ -38,12 +38,33 @@ namespace SyosetuScraper
             Volumes = new List<Volume>();
 
             Name = SearchNovelDoc("//p[@class='novel_title']");
-
-            if (Name == "エラー")
-                return;
+            if (Name == "エラー") return;
 
             Series = SearchNovelDoc("//p[@class='series_title']");
-            Author = SearchNovelDoc("//div[@class='novel_writername']", true);
+            
+            var auth = SearchNovelDoc("//div[@class='novel_writername']/a", true);
+            
+            if (auth == "エラー")
+            {
+                Author = SearchNovelDoc("//div[@class='novel_writername']").Replace("作者：", "");
+            }
+            else
+            {
+                var regGroups = Regex.Match(auth, "<a href=\"(?<link>.*)\">(?<author>.*)</a>").Groups;
+
+                if (regGroups.ContainsKey("link"))
+                    if (!string.IsNullOrEmpty(regGroups["link"].Value))
+                        AuthorLink = regGroups["link"].Value;
+                    else
+                        AuthorLink = "エラー";
+
+                if (regGroups.ContainsKey("author"))
+                    if (!string.IsNullOrEmpty(regGroups["author"].Value))
+                        Author = regGroups["author"].Value;
+                    else
+                        Author = "エラー";
+            }
+
             Description = SearchNovelDoc("//div[@id='novel_ex']");
 
             var groups = Regex.Match(Link, @".+\/(\w+)\.syosetu\.com\/(\w+)\/").Groups;
@@ -77,12 +98,13 @@ namespace SyosetuScraper
             CreateIndex();
         }
 
-        private string SearchNovelDoc(string xpath, bool repStr = false, string oldStr = "作者：", string newStr = "")
+        private string SearchNovelDoc(string xpath, bool getOut = false)
         {
             var resNode = NovelDoc.DocumentNode.SelectSingleNode(xpath);
-            var result = (resNode == null) ? "エラー" : resNode.InnerText.TrimStart().TrimEnd();
-            result = repStr ? result.Replace(oldStr, newStr) : result;
-            return result;
+            if (resNode == null) return "エラー";
+            
+            var result = getOut ? resNode.OuterHtml : resNode.InnerText;
+            return result.TrimStart().TrimEnd();
         }
 
         private HtmlNode SearchInfoTopDoc(string searchInnerText, string nodeCollection = "//tr", string returnNode = "td")
@@ -102,7 +124,11 @@ namespace SyosetuScraper
             var indexNode = NovelDoc.DocumentNode.SelectNodes("//div[@class='index_box']");
 
             if (indexNode == null)
+            {
+                if (Status == "one-shot")
+                    GetOneShot();
                 return;
+            }
 
             var nodes = indexNode.First().ChildNodes
                 .Where(n => n.Name == "div" || n.Name == "dl").ToList();
@@ -132,6 +158,13 @@ namespace SyosetuScraper
                 item.GetVolume(nodes.GetRange(indexFrom, indexTo));
                 item.Forget();
             }
+        }
+
+        private void GetOneShot()
+        {
+            Volumes.Add(new Volume(-1, 1, Name, Link, _novelSavePath));
+            Volumes[0].GetVolume(NovelDoc.DocumentNode.SelectSingleNode("//div[@id='novel_honbun']"));
+            Volumes[0].Forget();
         }
 
         private string GetToC()
@@ -192,6 +225,16 @@ namespace SyosetuScraper
 
         private void GetMoreInfo()
         {
+            if (Description == "エラー")
+            {
+                var tmp = SearchInfoTopDoc("あらすじ");
+
+                var desc = (tmp != null) ? tmp.InnerText : string.Empty;
+
+                if (!string.IsNullOrEmpty(desc))
+                    Description = desc;
+            }
+
             var statNode = InfoTopDoc.DocumentNode.SelectSingleNode("//span[@id='noveltype']");
 
             if (statNode == null)
@@ -207,15 +250,22 @@ namespace SyosetuScraper
             if (!string.IsNullOrEmpty(pDate))
                 PublicationDate = ConvertJPDate(pDate);
 
-            chk = SearchInfoTopDoc("最新部分掲載日");
+            if (Status == "one-shot")
+            {
+                LatestUpdate = PublicationDate;
+            }
+            else
+            {
+                chk = SearchInfoTopDoc("最新部分掲載日");
 
-            if (chk == null)
-                chk = SearchInfoTopDoc("最終部分掲載日");
+                if (chk == null)
+                    chk = SearchInfoTopDoc("最終部分掲載日");
 
-            var lUpdate = (chk != null) ? chk.InnerText : string.Empty;
+                var lUpdate = (chk != null) ? chk.InnerText : string.Empty;
 
-            if (!string.IsNullOrEmpty(pDate))
-                LatestUpdate = ConvertJPDate(lUpdate);
+                if (!string.IsNullOrEmpty(lUpdate))
+                    LatestUpdate = ConvertJPDate(lUpdate);
+            }
 
             if (!Status.Contains("ongoing"))
                 return;
@@ -281,8 +331,11 @@ namespace SyosetuScraper
 
             txt.AppendLine("Name: " + Name);
             if (Series != "エラー") txt.AppendLine("Series: " + Series);
-            txt.AppendLine("Author: " + Author);
+            if (Author != "エラー") txt.AppendLine("Author: " + Author);
             txt.AppendLine("Link: " + Link);
+
+            if (!string.IsNullOrEmpty(AuthorLink))
+                txt.AppendLine("Author's page: " + AuthorLink);
 
             if (!string.IsNullOrEmpty(Status)) 
                 txt.AppendLine("Status: " + Status);
@@ -293,9 +346,13 @@ namespace SyosetuScraper
             if (LatestUpdate.HasValue) 
                 txt.AppendLine("Latest Update: " + LatestUpdate.Value.ToString(Settings.Default.DateTimeFormat));
 
-            txt.AppendLine();
-            txt.AppendLine("Description:");
-            txt.AppendLine(Description);
+            if (Description != "エラー")
+            {
+                txt.AppendLine();
+                txt.AppendLine("Description:");
+                txt.AppendLine(Description);
+            }
+                
             txt.AppendLine();
 
             if (Settings.Default.ScrapeTags)

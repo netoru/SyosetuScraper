@@ -12,7 +12,7 @@ namespace SyosetuScraper {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.4.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.10.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -26,60 +26,60 @@ namespace SyosetuScraper {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0, 0")]
-        public global::System.Drawing.Point Location {
+        public global::System.Drawing.Point Main_Location {
             get {
-                return ((global::System.Drawing.Point)(this["Location"]));
+                return ((global::System.Drawing.Point)(this["Main_Location"]));
             }
             set {
-                this["Location"] = value;
+                this["Main_Location"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0, 0")]
-        public global::System.Drawing.Size Size {
+        public global::System.Drawing.Size Main_Size {
             get {
-                return ((global::System.Drawing.Size)(this["Size"]));
+                return ((global::System.Drawing.Size)(this["Main_Size"]));
             }
             set {
-                this["Size"] = value;
+                this["Main_Size"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool RememberSettings {
+        public bool SaveOnExit {
             get {
-                return ((bool)(this["RememberSettings"]));
+                return ((bool)(this["SaveOnExit"]));
             }
             set {
-                this["RememberSettings"] = value;
+                this["SaveOnExit"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool VolumeEqFolder {
+        public bool CF_Volume {
             get {
-                return ((bool)(this["VolumeEqFolder"]));
+                return ((bool)(this["CF_Volume"]));
             }
             set {
-                this["VolumeEqFolder"] = value;
+                this["CF_Volume"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool TypeEqFolder {
+        public bool CF_Category {
             get {
-                return ((bool)(this["TypeEqFolder"]));
+                return ((bool)(this["CF_Category"]));
             }
             set {
-                this["TypeEqFolder"] = value;
+                this["CF_Category"] = value;
             }
         }
         
@@ -193,7 +193,7 @@ namespace SyosetuScraper {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("D:\\Syosetu Novels\\2020-10-24\\")]
         public string SavePath {
             get {
                 return ((string)(this["SavePath"]));
@@ -206,24 +206,24 @@ namespace SyosetuScraper {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool DownloadImages {
+        public bool DLImages {
             get {
-                return ((bool)(this["DownloadImages"]));
+                return ((bool)(this["DLImages"]));
             }
             set {
-                this["DownloadImages"] = value;
+                this["DLImages"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool SeriesEqFolder {
+        public bool CF_Series {
             get {
-                return ((bool)(this["SeriesEqFolder"]));
+                return ((bool)(this["CF_Series"]));
             }
             set {
-                this["SeriesEqFolder"] = value;
+                this["CF_Series"] = value;
             }
         }
         
@@ -254,12 +254,12 @@ namespace SyosetuScraper {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("URLs")]
-        public string URLsFileNameFormat {
+        public string URLsFileName {
             get {
-                return ((string)(this["URLsFileNameFormat"]));
+                return ((string)(this["URLsFileName"]));
             }
             set {
-                this["URLsFileNameFormat"] = value;
+                this["URLsFileName"] = value;
             }
         }
         
@@ -302,36 +302,36 @@ namespace SyosetuScraper {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool AuthorEqFolder {
+        public bool CF_Author {
             get {
-                return ((bool)(this["AuthorEqFolder"]));
+                return ((bool)(this["CF_Author"]));
             }
             set {
-                this["AuthorEqFolder"] = value;
+                this["CF_Author"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool GetOnlyNovelInfo {
+        public bool OnlyNovelInfo {
             get {
-                return ((bool)(this["GetOnlyNovelInfo"]));
+                return ((bool)(this["OnlyNovelInfo"]));
             }
             set {
-                this["GetOnlyNovelInfo"] = value;
+                this["OnlyNovelInfo"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool KeepIndexInsideNovelFolder {
+        public bool IndexInNovelFolder {
             get {
-                return ((bool)(this["KeepIndexInsideNovelFolder"]));
+                return ((bool)(this["IndexInNovelFolder"]));
             }
             set {
-                this["KeepIndexInsideNovelFolder"] = value;
+                this["IndexInNovelFolder"] = value;
             }
         }
         
@@ -374,12 +374,12 @@ namespace SyosetuScraper {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool ScrapeAdditionalNovelInfo {
+        public bool AdditionalNovelInfo {
             get {
-                return ((bool)(this["ScrapeAdditionalNovelInfo"]));
+                return ((bool)(this["AdditionalNovelInfo"]));
             }
             set {
-                this["ScrapeAdditionalNovelInfo"] = value;
+                this["AdditionalNovelInfo"] = value;
             }
         }
         
@@ -428,6 +428,438 @@ namespace SyosetuScraper {
             }
             set {
                 this["Workers"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0, 0")]
+        public global::System.Drawing.Point UXS_Location {
+            get {
+                return ((global::System.Drawing.Point)(this["UXS_Location"]));
+            }
+            set {
+                this["UXS_Location"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0, 0")]
+        public global::System.Drawing.Size UXS_Size {
+            get {
+                return ((global::System.Drawing.Size)(this["UXS_Size"]));
+            }
+            set {
+                this["UXS_Size"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ImplementSQL {
+            get {
+                return ((bool)(this["ImplementSQL"]));
+            }
+            set {
+                this["ImplementSQL"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DBConnectionString {
+            get {
+                return ((string)(this["DBConnectionString"]));
+            }
+            set {
+                this["DBConnectionString"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool SqlButUrlsFromTxt {
+            get {
+                return ((bool)(this["SqlButUrlsFromTxt"]));
+            }
+            set {
+                this["SqlButUrlsFromTxt"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("オチ〇ポ;オマ〇コ;チ〇ポ;マ〇コ;チ〇チン;オチ〇チン")]
+        public string MaruToKatakanaN {
+            get {
+                return ((string)(this["MaruToKatakanaN"]));
+            }
+            set {
+                this["MaruToKatakanaN"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("おち〇ぽ;おま〇こ;ち〇ぽ;ま〇こ;ち〇ちん;おち〇ちん")]
+        public string MaruToHiraganaN {
+            get {
+                return ((string)(this["MaruToHiraganaN"]));
+            }
+            set {
+                this["MaruToHiraganaN"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool RC_ChapterContent {
+            get {
+                return ((bool)(this["RC_ChapterContent"]));
+            }
+            set {
+                this["RC_ChapterContent"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool RC_NovelTitle {
+            get {
+                return ((bool)(this["RC_NovelTitle"]));
+            }
+            set {
+                this["RC_NovelTitle"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool RC_SeriesTitle {
+            get {
+                return ((bool)(this["RC_SeriesTitle"]));
+            }
+            set {
+                this["RC_SeriesTitle"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool RC_AuthorName {
+            get {
+                return ((bool)(this["RC_AuthorName"]));
+            }
+            set {
+                this["RC_AuthorName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int UXS_LastOpenedTab {
+            get {
+                return ((int)(this["UXS_LastOpenedTab"]));
+            }
+            set {
+                this["UXS_LastOpenedTab"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Dead Links")]
+        public string DeadLinkFileNameFormat {
+            get {
+                return ((string)(this["DeadLinkFileNameFormat"]));
+            }
+            set {
+                this["DeadLinkFileNameFormat"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Invalid Chapter - {Number} - {Name}")]
+        public string InvalidChapterFileNameFormat {
+            get {
+                return ((string)(this["InvalidChapterFileNameFormat"]));
+            }
+            set {
+                this["InvalidChapterFileNameFormat"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool NoChapterAlreadyDL {
+            get {
+                return ((bool)(this["NoChapterAlreadyDL"]));
+            }
+            set {
+                this["NoChapterAlreadyDL"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string GoogleCredentials {
+            get {
+                return ((string)(this["GoogleCredentials"]));
+            }
+            set {
+                this["GoogleCredentials"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool CreateFolder {
+            get {
+                return ((bool)(this["CreateFolder"]));
+            }
+            set {
+                this["CreateFolder"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool RemoveCensorship {
+            get {
+                return ((bool)(this["RemoveCensorship"]));
+            }
+            set {
+                this["RemoveCensorship"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool RC_NovelDescription {
+            get {
+                return ((bool)(this["RC_NovelDescription"]));
+            }
+            set {
+                this["RC_NovelDescription"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool RC_SeriesDescription {
+            get {
+                return ((bool)(this["RC_SeriesDescription"]));
+            }
+            set {
+                this["RC_SeriesDescription"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool RC_Tags {
+            get {
+                return ((bool)(this["RC_Tags"]));
+            }
+            set {
+                this["RC_Tags"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool DLChapterIfModified {
+            get {
+                return ((bool)(this["DLChapterIfModified"]));
+            }
+            set {
+                this["DLChapterIfModified"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool GoogleAPI {
+            get {
+                return ((bool)(this["GoogleAPI"]));
+            }
+            set {
+                this["GoogleAPI"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool TL_KeepOriginalAsWell {
+            get {
+                return ((bool)(this["TL_KeepOriginalAsWell"]));
+            }
+            set {
+                this["TL_KeepOriginalAsWell"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool TL_NovelTitle {
+            get {
+                return ((bool)(this["TL_NovelTitle"]));
+            }
+            set {
+                this["TL_NovelTitle"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool TL_NovelDescription {
+            get {
+                return ((bool)(this["TL_NovelDescription"]));
+            }
+            set {
+                this["TL_NovelDescription"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool TL_SeriesTitle {
+            get {
+                return ((bool)(this["TL_SeriesTitle"]));
+            }
+            set {
+                this["TL_SeriesTitle"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool TL_SeriesDescription {
+            get {
+                return ((bool)(this["TL_SeriesDescription"]));
+            }
+            set {
+                this["TL_SeriesDescription"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool TL_AuthorName {
+            get {
+                return ((bool)(this["TL_AuthorName"]));
+            }
+            set {
+                this["TL_AuthorName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool TL_VolumeName {
+            get {
+                return ((bool)(this["TL_VolumeName"]));
+            }
+            set {
+                this["TL_VolumeName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool TL_ChapterTitle {
+            get {
+                return ((bool)(this["TL_ChapterTitle"]));
+            }
+            set {
+                this["TL_ChapterTitle"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool TL_ChapterContent {
+            get {
+                return ((bool)(this["TL_ChapterContent"]));
+            }
+            set {
+                this["TL_ChapterContent"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool RC_ChapterTitle {
+            get {
+                return ((bool)(this["RC_ChapterTitle"]));
+            }
+            set {
+                this["RC_ChapterTitle"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool RC_VolumeName {
+            get {
+                return ((bool)(this["RC_VolumeName"]));
+            }
+            set {
+                this["RC_VolumeName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Normal")]
+        public global::System.Windows.Forms.FormWindowState Main_WindowState {
+            get {
+                return ((global::System.Windows.Forms.FormWindowState)(this["Main_WindowState"]));
+            }
+            set {
+                this["Main_WindowState"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Normal")]
+        public global::System.Windows.Forms.FormWindowState UXS_WindowState {
+            get {
+                return ((global::System.Windows.Forms.FormWindowState)(this["UXS_WindowState"]));
+            }
+            set {
+                this["UXS_WindowState"] = value;
             }
         }
     }

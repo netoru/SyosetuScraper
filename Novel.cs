@@ -1,123 +1,160 @@
-﻿using HtmlAgilityPack;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using Dapper;
+using Dapper.Contrib.Extensions;
+using Google.Cloud.Translation.V2;
+using HtmlAgilityPack;
+using Microsoft.Data.SqlClient;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Web;
+using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
 namespace SyosetuScraper
 {
-    class Novel
+    public class Novel
     {
-        public string Id { get; private set; }
-        public string Series { get; private set; }
+        #region Global Variables
+
+        public string SyosetuId { get; set; }
         public string Name { get; private set; }
+        public string tlName { get; set; }
         public string Nickname { get; private set; }
-        public string Author { get; private set; }
+        public Series NovelSeries { get; private set; }
+        public Author NovelAuthor { get; private set; }
         public string Description { get; private set; }
+        public string tlDescription { get; set; }
         public string Type { get; private set; }
         public string Link { get; private set; }
-        public string AuthorLink { get; private set; }
         public string Status { get; private set; }
         public DateTime? PublicationDate { get; private set; }
         public DateTime? LatestUpdate { get; private set; }
         public HtmlDocument InfoTopDoc { get; private set; }
-        public List<Volume> Volumes { get; private set; }
+        public List<Volume> Volumes { get; private set; } = new List<Volume>();
         public HashSet<string> Tags { get; private set; }
         public HtmlDocument NovelDoc { get; private set; }
-        public bool IsValid => (Name != "エラー") ? true : false;
+        public bool IsValid => Name != "エラー";
         public string TableOfContents => GetToC();
+        public int TotalChapters
+        {
+            get
+            {
+                var totChapters = 0;
+                foreach (var volume in Volumes)
+                    totChapters += volume.Chapters.Count;
+                return totChapters;
+            }
+        }
 
-        private string _novelSavePath = "";
+        public string NovelSavePath { get; private set; } = "";
+        public int SqlId { get; private set; } = 0;
 
-        public Novel(string getNick, string getLink, HtmlDocument getDoc) => (Nickname, Link, NovelDoc) = (getNick, getLink, getDoc);
+        #endregion
 
-        public void Setup()
+        #region Created
+
+        public Novel(string getNick, string getLink) => (Nickname, Link) = (getNick, getLink);
+
+        public Task Setup()
         {
             Volumes = new List<Volume>();
 
-            Name = SearchNovelDoc("//p[@class='novel_title']");
-            if (Name == "エラー") return;
+            NovelDoc = Helpers.GetPage(Link);
 
-            Series = SearchNovelDoc("//p[@class='series_title']");
-            
-            var auth = SearchNovelDoc("//div[@class='novel_writername']/a", true);
-            
-            if (auth == "エラー")
+            Name = HttpUtility.HtmlDecode(Helpers.HtmlDoc_GetText(NovelDoc, "//p[@class='novel_title']"));
+            if (Settings.Default.RC_NovelTitle) Name = Helpers.RemoveCensorship(Name);
+            if (Name == "エラー")
             {
-                Author = SearchNovelDoc("//div[@class='novel_writername']").Replace("作者：", "");
+                var _name = string.IsNullOrEmpty(Nickname) ? Name : Nickname;
+                Helpers.DeadLink(this, Link, _name);
+
+                return Task.CompletedTask;
+            }
+
+            var seriesName = HttpUtility.HtmlDecode(Helpers.HtmlDoc_GetText(NovelDoc, "//p[@class='series_title']"));
+
+            if (seriesName != "エラー")
+            {
+                if (Settings.Default.RC_SeriesTitle) seriesName = Helpers.RemoveCensorship(seriesName);
+
+                var seriesLinkNode = NovelDoc.DocumentNode.SelectSingleNode("//p[@class='series_title']/a");
+
+                if (seriesLinkNode is not null)
+                {
+                    var seriesLinkMatch = Regex.Match(seriesLinkNode.OuterHtml, "\"/(.*?)/\"");
+
+                    if (seriesLinkMatch.Groups.Count > 1)
+                    {
+                        var seriesId = seriesLinkMatch.Groups[1].Value;
+                        NovelSeries = new Series(Link.Replace(SyosetuId, seriesId)) { SyosetuId = seriesId, Name = seriesName };
+                    }
+                }
+            }
+
+            var authorName = Helpers.HtmlDoc_GetText(NovelDoc, "//div[@class='novel_writername']/a", true);
+            string authorId = "エラー", authorLink = "エラー";
+
+            if (authorName == "エラー")
+            {
+                authorName = Helpers.HtmlDoc_GetText(NovelDoc, "//div[@class='novel_writername']").Replace("作者：", "");
+                //no link author
             }
             else
             {
-                var regGroups = Regex.Match(auth, "<a href=\"(?<link>.*)\">(?<author>.*)</a>").Groups;
+                var regGroups = Regex.Match(authorName, "<a href=\"(?<link>.*)\">(?<author>.*)</a>").Groups;
 
                 if (regGroups.ContainsKey("link"))
                     if (!string.IsNullOrEmpty(regGroups["link"].Value))
-                        AuthorLink = regGroups["link"].Value;
-                    else
-                        AuthorLink = "エラー";
+                        authorLink = regGroups["link"].Value;
 
                 if (regGroups.ContainsKey("author"))
                     if (!string.IsNullOrEmpty(regGroups["author"].Value))
-                        Author = regGroups["author"].Value;
-                    else
-                        Author = "エラー";
+                        authorName = regGroups["author"].Value;
+
+                if (!string.IsNullOrEmpty(authorLink))
+                {
+                    var authorLinkMatches = Regex.Matches(authorLink, @"\b\w+\b");
+
+                    if (authorLinkMatches.Count > 4)
+                        authorId = authorLinkMatches[4].Value;
+                }
             }
 
-            Description = SearchNovelDoc("//div[@id='novel_ex']");
+            if (Settings.Default.RC_AuthorName) authorName = Helpers.RemoveCensorship(authorName);
+
+            NovelAuthor = new Author(authorLink) { SyosetuId = authorId, Name = authorName };
+
+            Description = HttpUtility.HtmlDecode(Helpers.HtmlDoc_GetText(NovelDoc, "//div[@id='novel_ex']"));
+            if (Settings.Default.RC_NovelDescription) Description = Helpers.RemoveCensorship(Description);
 
             var groups = Regex.Match(Link, @".+\/(\w+)\.syosetu\.com\/(\w+)\/").Groups;
 
             try
             {
                 Type = groups[1].Value;
-                Id = groups[2].Value;
+                SyosetuId = groups[2].Value;
             }
-            catch (IndexOutOfRangeException)
-            {
-                throw;
-            }
-
-            if (Settings.Default.ScrapeAdditionalNovelInfo || Settings.Default.ScrapeTags)
-            {
-                var infoTopLink = Link.Replace(Id, "novelview/infotop/ncode/" + Id);
-                InfoTopDoc = Scraping.GetPage(infoTopLink);
-
-                if (Settings.Default.ScrapeAdditionalNovelInfo)
-                    GetMoreInfo();
-
-                if (Settings.Default.ScrapeTags)
-                    GetTags();
-            }
+            catch (IndexOutOfRangeException) { throw; }
 
             CreateNovelFolder();
 
             GetNovel();
 
+            var infoTopLink = Link.Replace(SyosetuId, "novelview/infotop/ncode/" + SyosetuId);
+            InfoTopDoc = (Settings.Default.AdditionalNovelInfo || Settings.Default.ScrapeTags) ? Helpers.GetPage(infoTopLink) : null;
+
+            if (Settings.Default.AdditionalNovelInfo)
+                GetMoreInfo();
+
+            if (Settings.Default.ImplementSQL)
+                SaveNovelToDB();
+
+            if (Settings.Default.ScrapeTags)
+                GetTags();
+
+            InfoTopDoc = null;
+
             CreateIndex();
-        }
 
-        private string SearchNovelDoc(string xpath, bool getOut = false)
-        {
-            var resNode = NovelDoc.DocumentNode.SelectSingleNode(xpath);
-            if (resNode == null) return "エラー";
-            
-            var result = getOut ? resNode.OuterHtml : resNode.InnerText;
-            return result.TrimStart().TrimEnd();
-        }
-
-        private HtmlNode SearchInfoTopDoc(string searchInnerText, string nodeCollection = "//tr", string returnNode = "td")
-        {
-            var trNodes = InfoTopDoc.DocumentNode.SelectNodes(nodeCollection);
-
-            if (trNodes != null)
-                foreach (var trNode in trNodes)
-                    foreach (var item in trNode.ChildNodes)
-                        if (item.InnerText == searchInnerText)
-                            return trNode.SelectSingleNode(returnNode);
-
-            return HtmlNode.CreateNode("");
+            return Task.CompletedTask;
         }
 
         private void GetNovel()
@@ -126,14 +163,15 @@ namespace SyosetuScraper
 
             if (indexNode == null)
             {
-                if (Status == "one-shot")
-                    GetOneShot();
+                GetOneShot();
                 return;
             }
 
+            NovelDoc = null;
+
             var nodes = indexNode.First().ChildNodes
                 .Where(n => n.Name == "div" || n.Name == "dl").ToList();
-            
+
             var i = 1;
             foreach (var node in nodes)
             {
@@ -143,12 +181,12 @@ namespace SyosetuScraper
                     continue;
                 var volName = node.InnerText.TrimStart().TrimEnd();
                 var volIndex = nodes.IndexOf(node);
-                Volumes.Add(new Volume(volIndex, i, volName, Link, _novelSavePath));
+                Volumes.Add(new Volume(volIndex, i, Helpers.RemoveCensorship(HttpUtility.HtmlDecode(volName)), Link, NovelSavePath));
                 i++;
             }
 
             if (Volumes.Count == 0)
-                Volumes.Add(new Volume(-1, -1, string.Empty, Link, _novelSavePath));
+                Volumes.Add(new Volume(-1, -1, string.Empty, Link, NovelSavePath));
 
             foreach (var item in Volumes)
             {
@@ -162,40 +200,45 @@ namespace SyosetuScraper
 
         private void GetOneShot()
         {
-            Volumes.Add(new Volume(-1, 1, Name, Link, _novelSavePath));
+            Volumes.Add(new Volume(-1, 1, Name, Link, NovelSavePath));
             Volumes[0].GetVolume(NovelDoc.DocumentNode.SelectSingleNode("//div[@id='novel_honbun']"));
+            NovelDoc = null;
         }
 
-        private string GetToC()
+        private string GetToC(bool tlToc = false)
         {
             var toc = new StringBuilder();
 
             foreach (var volume in Volumes)
-                toc.AppendLine(volume.ToString());
+                toc.AppendLine(volume.ToString(tlToc));
 
             return toc.ToString();
         }
 
         private void GetTags()
         {
-            var input = SearchInfoTopDoc("キーワード").InnerText;
+            var input = Helpers.HtmlDoc_GetNode(InfoTopDoc, "キーワード").InnerText;
 
             if (string.IsNullOrEmpty(input))
                 return;
+
+            //To change things like &quot; into "
+            input = Helpers.RemoveCensorship(HttpUtility.HtmlDecode(input));
 
             //Normalize characters like: Ｓｙｏｓｅｔｕ
             //into: Syosetu
             input = input.Normalize(NormalizationForm.FormKC).ToUpper();
 
             //annoying garbage
-            var replaceables = new List<string>() { "\n", "&NBSP;", "　", "・", ".", "/", "(", ")", "\t" };
+            var replaceables = new List<string>() { "\n", "&NBSP;", "　", "・",
+                ".", "/", "(", ")", "\t", "、", "&" };
 
             foreach (var item in replaceables)
                 input = input.Replace(item, " ");
 
             while (input.Contains("  "))
                 input = input.Replace("  ", " ");
-            
+
             var splitter = ' ';
 
             var originalWords = input.Split(splitter);
@@ -206,32 +249,99 @@ namespace SyosetuScraper
                 if (string.IsNullOrEmpty(originalWords[i]))
                     continue;
 
-                switch ((Settings.Default.ReplaceKnownTags, Scraping.KnownTags.ContainsKey(originalWords[i])))
+                Tags.Add(originalWords[i]);
+            }
+
+            if (!Settings.Default.ImplementSQL)
+                return;
+
+            var interchangeable = new List<string>();
+
+            using var conn = Helpers.GetConnection();
+            foreach (var tag in Tags)
+            {
+                var tag_record = new SQL_Tags
                 {
-                    case (true, true):
-                        Tags.Add(Scraping.KnownTags[originalWords[i]]);
-                        break;
-                    case (true, false):
-                        Tags.Add(originalWords[i]);
-                        Scraping.UnknownTags.Add(originalWords[i]);
-                        break;
-                    default:
-                        Tags.Add(originalWords[i]);
-                        break;
+                    Tag_Name = tag,
+                    AddedOn = DateTime.Now,
+                    FirstNovelToUse = SqlId,
+                    LastUpdate = DateTime.Now,
+                    User_ID = Environment.UserName
+                };
+
+                var res = conn.QueryFirstOrDefault<SQL_Tags>(@"select * from Tags 
+                            where Tag_Name = @TName", new { TName = tag });
+
+                if (res is null)
+                {
+                    try
+                    {
+                        conn.Insert(tag_record);
+                        res = tag_record;
+                    }
+                    catch (SqlException ex) { if (ex.Number != 2601 && ex.Number != 2627) throw; }
+
+                    //check if the above failed because of concurrent inserts
+                    //if so, try retrieving the tag again
+                    //if nothing is found throw
+                    if (tag_record.Tag_ID < 1)
+                    {
+                        res = conn.QueryFirstOrDefault<SQL_Tags>(@"select * from Tags 
+                            where Tag_Name = @TName", new { TName = tag });
+
+                        if (res is null)
+                            throw new ArgumentNullException();
+                    }
                 }
+
+                tag_record.Tag_ID = res.Tag_ID;
+
+                //on sql dbs katakana and hiragana are treated the same
+                if (tag_record.Tag_Name != res.Tag_Name)
+                    interchangeable.Add(tag_record.Tag_Name + " " + res.Tag_Name);
+
+                if (res.FirstNovelToUse == -1)
+                {
+                    res.FirstNovelToUse = SqlId;
+                    res.LastUpdate = DateTime.Now;
+                    conn.Update(res);
+                }
+
+                var relationship = new SQL_Relationships
+                {
+                    Type = 2,
+                    Ranking = 0,
+                    Master_ID = SqlId,
+                    Slave_ID = tag_record.Tag_ID,
+                    AddedOn = DateTime.Now,
+                    User_ID = Environment.UserName
+                };
+
+                try
+                {
+                    conn.Insert(relationship);
+                }
+                catch (SqlException ex) { if (ex.Number != 2601 && ex.Number != 2627) throw; }
+            }
+
+            foreach (var kana in interchangeable)
+            {
+                Tags.Remove(kana.Split(" ")[0]);
+                Tags.Add(kana.Split(" ")[1]);
             }
         }
 
         private void GetMoreInfo()
         {
+            if (InfoTopDoc is null)
+                return;
+
             if (Description == "エラー")
             {
-                var tmp = SearchInfoTopDoc("あらすじ");
+                var tmp = Helpers.HtmlDoc_GetNode(InfoTopDoc, "あらすじ");
 
-                var desc = (tmp != null) ? tmp.InnerText : string.Empty;
-
-                if (!string.IsNullOrEmpty(desc))
-                    Description = desc;
+                if (!string.IsNullOrEmpty(tmp.InnerText)) Description = tmp.InnerText;
+                if (Settings.Default.RC_NovelDescription) Description = Helpers.RemoveCensorship(Description);
             }
 
             var statNode = InfoTopDoc.DocumentNode.SelectSingleNode("//span[@id='noveltype']");
@@ -242,12 +352,12 @@ namespace SyosetuScraper
             if (statNode != null)
                 Status = GetStatus(statNode);
 
-            var chk = SearchInfoTopDoc("掲載日");
+            var chk = Helpers.HtmlDoc_GetNode(InfoTopDoc, "掲載日");
 
-            var pDate = (chk != null) ? chk.InnerText : string.Empty;
+            var pDate = (!string.IsNullOrEmpty(chk.InnerText)) ? Helpers.ConvertJPDate(chk.InnerText) : (DateTime?)null;
 
-            if (!string.IsNullOrEmpty(pDate))
-                PublicationDate = ConvertJPDate(pDate);
+            if (pDate.HasValue)
+                PublicationDate = pDate.Value;
 
             if (Status == "one-shot")
             {
@@ -255,15 +365,15 @@ namespace SyosetuScraper
             }
             else
             {
-                chk = SearchInfoTopDoc("最新部分掲載日");
+                chk = Helpers.HtmlDoc_GetNode(InfoTopDoc, "最新部分掲載日");
 
-                if (chk == null)
-                    chk = SearchInfoTopDoc("最終部分掲載日");
+                if (string.IsNullOrEmpty(chk.InnerText))
+                    chk = Helpers.HtmlDoc_GetNode(InfoTopDoc, "最終部分掲載日");
 
-                var lUpdate = (chk != null) ? chk.InnerText : string.Empty;
+                var lUpdate = (!string.IsNullOrEmpty(chk.InnerText)) ? Helpers.ConvertJPDate(chk.InnerText) : (DateTime?)null;
 
-                if (!string.IsNullOrEmpty(lUpdate))
-                    LatestUpdate = ConvertJPDate(lUpdate);
+                if (lUpdate.HasValue)
+                    LatestUpdate = lUpdate.Value;
             }
 
             if (!Status.Contains("ongoing"))
@@ -315,34 +425,73 @@ namespace SyosetuScraper
             return res + $", {count[1].Value} chapters";
         }
 
-        private DateTime ConvertJPDate(string jpDate)
-        {
-            var pattern = @"(?<Year>\d{4})年.*(?<Month>\d{2})月.*(?<Day>\d{2})日.*(?<Hours>\d{2})時.*(?<Minutes>\d{2})分";
-            var res = Regex.Match(jpDate, pattern).Groups;
-
-            return new DateTime(Convert.ToInt32(res["Year"].Value), Convert.ToInt32(res["Month"].Value), 
-                Convert.ToInt32(res["Day"].Value), Convert.ToInt32(res["Hours"].Value), Convert.ToInt32(res["Minutes"].Value), 00);
-        }
-
         public override string ToString()
         {
+            if (Settings.Default.GoogleAPI)
+            {
+                if (Settings.Default.TL_NovelTitle && Name != "エラー")
+                {
+                    TranslationResult result = Main.gClient.TranslateText(Name, LanguageCodes.English, LanguageCodes.Japanese);
+                    tlName = result.TranslatedText;
+                }
+
+                if (Settings.Default.TL_NovelDescription && Description != "エラー")
+                {
+                    TranslationResult result = Main.gClient.TranslateText(Description, LanguageCodes.English, LanguageCodes.Japanese);
+                    tlDescription = result.TranslatedText;
+                }
+            }
+
             var txt = new StringBuilder();
 
             txt.AppendLine("Name: " + Name);
-            if (Series != "エラー") txt.AppendLine("Series: " + Series);
-            if (Author != "エラー") txt.AppendLine("Author: " + Author);
+
+            if (!string.IsNullOrEmpty(tlName) && Settings.Default.GoogleAPI && Settings.Default.TL_KeepOriginalAsWell)
+                txt.AppendLine("Name (EN): " + tlName);
+
+            if (NovelSeries is not null)
+            {
+                txt.AppendLine("Series: " + NovelSeries.Name);
+                txt.AppendLine("Series Description: " + NovelSeries.Description);
+
+                if (Settings.Default.GoogleAPI && Settings.Default.TL_KeepOriginalAsWell)
+                {
+                    NovelSeries.GetTranslation();
+
+                    if (!string.IsNullOrEmpty(NovelSeries.tlName))
+                        txt.AppendLine("Series (EN): " + NovelSeries.tlName);
+                    if (!string.IsNullOrEmpty(NovelSeries.tlDescription))
+                        txt.AppendLine("Series Description (EN): " + NovelSeries.tlDescription);
+                }
+            }
+
+            if (NovelAuthor.Name != "エラー")
+            {
+                txt.AppendLine("Author: " + NovelAuthor.Name);
+
+                if (Settings.Default.GoogleAPI && Settings.Default.TL_KeepOriginalAsWell)
+                {
+                    NovelAuthor.GetTranslation();
+
+                    if (!string.IsNullOrEmpty(NovelAuthor.tlName) && Settings.Default.GoogleAPI && Settings.Default.TL_KeepOriginalAsWell)
+                        txt.AppendLine("Author (EN): " + NovelAuthor.tlName);
+                }
+            }
+            
             txt.AppendLine("Link: " + Link);
 
-            if (!string.IsNullOrEmpty(AuthorLink))
-                txt.AppendLine("Author's page: " + AuthorLink);
+            if (!string.IsNullOrEmpty(NovelAuthor.Link))
+                txt.AppendLine("Author's page: " + NovelAuthor.Link);
 
-            if (!string.IsNullOrEmpty(Status)) 
+            if (!string.IsNullOrEmpty(Status))
                 txt.AppendLine("Status: " + Status);
+            else
+                txt.AppendLine($"Status: unknown, {TotalChapters} chapters");
 
-            if (PublicationDate.HasValue) 
+            if (PublicationDate.HasValue)
                 txt.AppendLine("Publication Date: " + PublicationDate.Value.ToString(Settings.Default.DateTimeFormat));
 
-            if (LatestUpdate.HasValue) 
+            if (LatestUpdate.HasValue)
                 txt.AppendLine("Latest Update: " + LatestUpdate.Value.ToString(Settings.Default.DateTimeFormat));
 
             if (Description != "エラー")
@@ -350,17 +499,36 @@ namespace SyosetuScraper
                 txt.AppendLine();
                 txt.AppendLine("Description:");
                 txt.AppendLine(Description);
+
+                if (Settings.Default.GoogleAPI && Settings.Default.TL_KeepOriginalAsWell)
+                {
+                    txt.AppendLine("Description (EN):");
+                    txt.AppendLine(tlDescription);
+                }
             }
-                
+
             txt.AppendLine();
 
-            if (Settings.Default.ScrapeTags)
+            if (Settings.Default.ScrapeTags && Tags is not null)
             {
                 var tagsLine = "Tags: ";
 
                 for (int i = 0; i < Tags.Count; i++)
                 {
-                    tagsLine += Tags.ElementAt(i);
+                    switch ((Settings.Default.ReplaceKnownTags, Main.KnownTags.ContainsKey(Tags.ElementAt(i))))
+                    {
+                        case (true, true):
+                            tagsLine += Main.KnownTags[Tags.ElementAt(i)];
+                            break;
+                        case (true, false):
+                            tagsLine += Tags.ElementAt(i);
+                            if (!Main.UnknownTags.ContainsKey(Tags.ElementAt(i)))
+                                Main.UnknownTags.Add(Tags.ElementAt(i), SqlId);
+                            break;
+                        default:
+                            tagsLine += Tags.ElementAt(i);
+                            break;
+                    }
 
                     if (i < Tags.Count - 1)
                         tagsLine += ", ";
@@ -373,33 +541,32 @@ namespace SyosetuScraper
             txt.AppendLine("Table of Contents: ");
             txt.AppendLine(TableOfContents);
 
+            if (Settings.Default.GoogleAPI && Settings.Default.TL_KeepOriginalAsWell)
+            {
+                txt.AppendLine("Table of Contents (EN): ");
+                txt.AppendLine(GetToC(true));
+            }
+
             return txt.ToString();
         }
 
         private void CreateNovelFolder()
         {
-            _novelSavePath = Settings.Default.SavePath;
+            NovelSavePath = Settings.Default.SavePath;
 
-            if (!Settings.Default.GetOnlyNovelInfo)
+            if (!Settings.Default.OnlyNovelInfo && Settings.Default.CreateFolder)
             {
-                if (Settings.Default.TypeEqFolder) _novelSavePath += CheckChars(Type) + "\\";
-                if (Settings.Default.SeriesEqFolder) _novelSavePath += CheckChars(Series) + "\\";
-                if (Settings.Default.AuthorEqFolder) _novelSavePath += CheckChars(Author) + "\\";
+                if (Settings.Default.CF_Category) NovelSavePath += Helpers.CheckChars(Type) + "\\";
+                if (Settings.Default.CF_Series) NovelSavePath += Helpers.CheckChars(NovelSeries.Name) + "\\";
+                if (Settings.Default.CF_Author) NovelSavePath += Helpers.CheckChars(NovelAuthor.Name) + "\\";
 
-                var novelFolderName = Settings.Default.NovelFolderNameFormat;
-                novelFolderName = novelFolderName.Replace("{Id}", Id.ToString());
-                novelFolderName = novelFolderName.Replace("{Name}", Name);
-                novelFolderName = novelFolderName.Replace("{Author}", Author);
-                novelFolderName = novelFolderName.Replace("{Type}", Type);
-                novelFolderName = novelFolderName.Replace("{Series}", Series);
+                var novelFolderName = Helpers.GenerateFileName(Settings.Default.NovelFolderNameFormat, this);
 
-                if (!string.IsNullOrEmpty(Nickname))
-                    novelFolderName = novelFolderName.Replace("{Nickname}", Nickname);
-                else
-                    novelFolderName = novelFolderName.Replace("{Nickname}", "");
+                if (string.IsNullOrEmpty(novelFolderName))
+                    novelFolderName = Name;
 
-                _novelSavePath += CheckChars(novelFolderName);
-                Directory.CreateDirectory(_novelSavePath);
+                NovelSavePath += Helpers.CheckChars(novelFolderName);
+                Directory.CreateDirectory(NovelSavePath);
             }
         }
 
@@ -408,19 +575,15 @@ namespace SyosetuScraper
             if (!Settings.Default.CreateIndex)
                 return;
 
-            var indexFileName = Settings.Default.IndexFileNameFormat;
-            indexFileName = indexFileName.Replace("{Id}", Id.ToString());
-            indexFileName = indexFileName.Replace("{Name}", Name);
-            indexFileName = indexFileName.Replace("{Author}", Author);
-            indexFileName = indexFileName.Replace("{Type}", Type);
-            indexFileName = indexFileName.Replace("{Series}", Series);
+            var indexFileName = Helpers.GenerateFileName(Settings.Default.IndexFileNameFormat, this);
 
             var path = Settings.Default.SavePath;
 
-            if (Settings.Default.KeepIndexInsideNovelFolder)
-                path = _novelSavePath + "\\";
+            if (Settings.Default.IndexInNovelFolder)
+                path = NovelSavePath + "\\";
 
-            path += CheckChars(indexFileName);
+            path += Helpers.CheckChars(indexFileName);
+            if (!path.EndsWith(".txt")) path += ".txt";
 
             if (!File.Exists(path))
             {
@@ -433,12 +596,168 @@ namespace SyosetuScraper
                     tw.WriteLine(ToString());
         }
 
-        public static string CheckChars(string input)
+        private void SaveNovelToDB()
         {
-            //Check for illegal characters
-            string regexSearch = new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars());
-            var r = new Regex(string.Format("[{0}]", Regex.Escape(regexSearch)));
-            return r.Replace(input, "□");
+            //Status: completed, 58 chapters
+            var currentStatus = "unknown";
+            var totChapters = -1;
+
+            if (!string.IsNullOrEmpty(Status))
+            {
+                currentStatus = Status.Split(",")[0];
+
+                if (Status != "one-shot")
+                    int.TryParse(Status.Split(" ")[1], out totChapters);
+                else
+                    totChapters = 1;
+            }
+
+            if (totChapters == -1)
+                totChapters = TotalChapters;
+
+            var novel = new SQL_Novels
+            {
+                Novel_Code = SyosetuId,
+                Novel_Page = Link,
+                Novel_Type = Type,
+                Novel_Status = currentStatus,
+                PublicationDate = PublicationDate,
+                Chapters = totChapters,
+                AddedOn = DateTime.Now,
+                LastUpdate = LatestUpdate,
+                LastScrape = DateTime.Now,
+                Scrape = true,
+                User_ID = Environment.UserName
+            };
+
+            //check if novel already exists
+            using var conn = Helpers.GetConnection();
+            var res = conn.QueryFirstOrDefault<SQL_Novels>(@"select * from Novels 
+                where Novel_Code = @NCode", new { NCode = SyosetuId });
+
+            if (res is not null)
+            {
+                //update if yes
+                novel.Novel_ID = SqlId = res.Novel_ID;
+                novel.AddedOn = res.AddedOn;
+                novel.LastUpdate ??= res.LastUpdate;
+                novel.PublicationDate ??= res.PublicationDate;
+                novel.Scrape = res.Scrape;
+                if (novel.Novel_Status == "unknown") novel.Novel_Status = res.Novel_Status;
+                if (res.Translated_Chapters != 0) novel.Translated_Chapters = res.Translated_Chapters;
+                novel.Previous_Chapters = res.Chapters;
+
+                conn.Update(novel);
+            }
+            else
+            {
+                //insert if not
+                SqlId = (int)conn.Insert(novel);
+            }
+
+            var nameExists = conn.QueryFirstOrDefault<SQL_Names>("select * from names where name_value = @Nvalue", new { NValue = Name });
+            var nicknameExists = (SQL_Names)null;
+            var tlNameExists = (SQL_Names)null;
+
+            if (!string.IsNullOrEmpty(Nickname))
+                nicknameExists = conn.QueryFirstOrDefault<SQL_Names>("select * from names where name_value = @Nvalue", new { NValue = Nickname });
+            if (!string.IsNullOrEmpty(tlName))
+                tlNameExists = conn.QueryFirstOrDefault<SQL_Names>("select * from names where name_value = @Nvalue", new { NValue = tlName });
+
+            if (nameExists is null)
+                Helpers.DBRelationships_Name((int)Helpers.NameRanking.JP, novel.Novel_ID, Name, "Novel Name");
+            else
+                Helpers.DBRelationships_Name((int)Helpers.NameRanking.JP, novel.Novel_ID, nameExists.Name_ID, "Novel Name");
+
+            if (nicknameExists is null)
+            {
+                if (!string.IsNullOrEmpty(Nickname))
+                    Helpers.DBRelationships_Name((int)Helpers.NameRanking.Nickname, novel.Novel_ID, Nickname, "Novel Name", true);
+            }
+            else
+                Helpers.DBRelationships_Name((int)Helpers.NameRanking.Nickname, novel.Novel_ID, nicknameExists.Name_ID, "Novel Name", true);
+
+            if (tlNameExists is null)
+            {
+                if (!string.IsNullOrEmpty(tlName))
+                    Helpers.DBRelationships_Name((int)Helpers.NameRanking.Eng, novel.Novel_ID, tlName, "Novel Name");
+            }
+            else
+                Helpers.DBRelationships_Name((int)Helpers.NameRanking.Eng, novel.Novel_ID, tlNameExists.Name_ID, "Novel Name");
+
+            NovelAuthor.Setup(false);
+            if (NovelSeries is not null) NovelSeries.Setup(false);
+            DBRelationships_Parents();
         }
+
+        private void DBRelationships_Parents()
+        {
+            using var conn = Helpers.GetConnection();
+
+            var authRelExists = conn.QueryFirstOrDefault<SQL_Relationships>(
+                @"select * from Relationships where Type = 4 and 
+                Ranking = 0 and Master_ID = @MID and Slave_ID = @SID",
+                new { MID = NovelAuthor.SqlId, SID = SqlId });
+
+            if (authRelExists is null)
+            {
+                authRelExists = new SQL_Relationships()
+                {
+                    Type = 4,
+                    Ranking = 0,
+                    Master_ID = NovelAuthor.SqlId,
+                    Slave_ID = SqlId,
+                    AddedOn = DateTime.Now,
+                    User_ID = Environment.UserName
+                };
+
+                conn.Insert(authRelExists);
+            }
+
+            if (NovelSeries is null)
+                return;
+
+            var seriNovRelExists = conn.QueryFirstOrDefault<SQL_Relationships>(
+                @"select * from Relationships where Type = 7 and 
+                Ranking = 0 and Master_ID = @MID and Slave_ID = @SID",
+                new { MID = NovelSeries.SqlId, SID = SqlId });
+
+            if (seriNovRelExists is null)
+            {
+                seriNovRelExists = new SQL_Relationships()
+                {
+                    Type = 7,
+                    Ranking = 0,
+                    Master_ID = NovelSeries.SqlId,
+                    Slave_ID = SqlId,
+                    AddedOn = DateTime.Now,
+                    User_ID = Environment.UserName
+                };
+
+                conn.Insert(seriNovRelExists);
+            }
+
+            var seriAuthRelExists = conn.QueryFirstOrDefault<SQL_Relationships>(
+                @"select * from Relationships where Type = 5 and 
+                Ranking = 0 and Master_ID = @MID and Slave_ID = @SID",
+                new { MID = NovelAuthor.SqlId, SID = NovelSeries.SqlId });
+
+            if (seriAuthRelExists is null)
+            {
+                seriAuthRelExists = new SQL_Relationships()
+                {
+                    Type = 5,
+                    Ranking = 0,
+                    Master_ID = NovelAuthor.SqlId,
+                    Slave_ID = NovelSeries.SqlId,
+                    AddedOn = DateTime.Now,
+                    User_ID = Environment.UserName
+                };
+
+                conn.Insert(seriAuthRelExists);
+            }
+        }
+
+        #endregion
     }
 }

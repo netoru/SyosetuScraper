@@ -2,19 +2,19 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SyosetuScraper" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="Location" Type="System.Drawing.Point" Scope="User">
+    <Setting Name="Main_Location" Type="System.Drawing.Point" Scope="User">
       <Value Profile="(Default)">0, 0</Value>
     </Setting>
-    <Setting Name="Size" Type="System.Drawing.Size" Scope="User">
+    <Setting Name="Main_Size" Type="System.Drawing.Size" Scope="User">
       <Value Profile="(Default)">0, 0</Value>
     </Setting>
-    <Setting Name="RememberSettings" Type="System.Boolean" Scope="User">
+    <Setting Name="SaveOnExit" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="VolumeEqFolder" Type="System.Boolean" Scope="User">
+    <Setting Name="CF_Volume" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="TypeEqFolder" Type="System.Boolean" Scope="User">
+    <Setting Name="CF_Category" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="NovelFolderNameFormat" Type="System.String" Scope="User">
@@ -45,12 +45,12 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="SavePath" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">D:\Syosetu Novels\2020-10-24\</Value>
     </Setting>
-    <Setting Name="DownloadImages" Type="System.Boolean" Scope="User">
+    <Setting Name="DLImages" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="SeriesEqFolder" Type="System.Boolean" Scope="User">
+    <Setting Name="CF_Series" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="CreateIndex" Type="System.Boolean" Scope="User">
@@ -59,7 +59,7 @@
     <Setting Name="IndexFileNameFormat" Type="System.String" Scope="User">
       <Value Profile="(Default)">_Index.txt</Value>
     </Setting>
-    <Setting Name="URLsFileNameFormat" Type="System.String" Scope="User">
+    <Setting Name="URLsFileName" Type="System.String" Scope="User">
       <Value Profile="(Default)">URLs</Value>
     </Setting>
     <Setting Name="ScrapeTags" Type="System.Boolean" Scope="User">
@@ -71,13 +71,13 @@
     <Setting Name="KnownTagsFileName" Type="System.String" Scope="User">
       <Value Profile="(Default)">Tags</Value>
     </Setting>
-    <Setting Name="AuthorEqFolder" Type="System.Boolean" Scope="User">
+    <Setting Name="CF_Author" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="GetOnlyNovelInfo" Type="System.Boolean" Scope="User">
+    <Setting Name="OnlyNovelInfo" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="KeepIndexInsideNovelFolder" Type="System.Boolean" Scope="User">
+    <Setting Name="IndexInNovelFolder" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="SaveUnknownTags" Type="System.Boolean" Scope="User">
@@ -89,7 +89,7 @@
     <Setting Name="AppendUnknownTags" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="ScrapeAdditionalNovelInfo" Type="System.Boolean" Scope="User">
+    <Setting Name="AdditionalNovelInfo" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="DateTimeFormat" Type="System.String" Scope="User">
@@ -103,6 +103,114 @@
     </Setting>
     <Setting Name="Workers" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">5</Value>
+    </Setting>
+    <Setting Name="UXS_Location" Type="System.Drawing.Point" Scope="User">
+      <Value Profile="(Default)">0, 0</Value>
+    </Setting>
+    <Setting Name="UXS_Size" Type="System.Drawing.Size" Scope="User">
+      <Value Profile="(Default)">0, 0</Value>
+    </Setting>
+    <Setting Name="ImplementSQL" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="DBConnectionString" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SqlButUrlsFromTxt" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="MaruToKatakanaN" Type="System.String" Scope="User">
+      <Value Profile="(Default)">オチ〇ポ;オマ〇コ;チ〇ポ;マ〇コ;チ〇チン;オチ〇チン</Value>
+    </Setting>
+    <Setting Name="MaruToHiraganaN" Type="System.String" Scope="User">
+      <Value Profile="(Default)">おち〇ぽ;おま〇こ;ち〇ぽ;ま〇こ;ち〇ちん;おち〇ちん</Value>
+    </Setting>
+    <Setting Name="RC_ChapterContent" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="RC_NovelTitle" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="RC_SeriesTitle" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="RC_AuthorName" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="UXS_LastOpenedTab" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="DeadLinkFileNameFormat" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Dead Links</Value>
+    </Setting>
+    <Setting Name="InvalidChapterFileNameFormat" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Invalid Chapter - {Number} - {Name}</Value>
+    </Setting>
+    <Setting Name="NoChapterAlreadyDL" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="GoogleCredentials" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="CreateFolder" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="RemoveCensorship" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="RC_NovelDescription" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="RC_SeriesDescription" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="RC_Tags" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="DLChapterIfModified" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="GoogleAPI" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="TL_KeepOriginalAsWell" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="TL_NovelTitle" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="TL_NovelDescription" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="TL_SeriesTitle" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="TL_SeriesDescription" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="TL_AuthorName" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="TL_VolumeName" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="TL_ChapterTitle" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="TL_ChapterContent" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="RC_ChapterTitle" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="RC_VolumeName" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="Main_WindowState" Type="System.Windows.Forms.FormWindowState" Scope="User">
+      <Value Profile="(Default)">Normal</Value>
+    </Setting>
+    <Setting Name="UXS_WindowState" Type="System.Windows.Forms.FormWindowState" Scope="User">
+      <Value Profile="(Default)">Normal</Value>
     </Setting>
   </Settings>
 </SettingsFile>

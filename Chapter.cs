@@ -1,61 +1,96 @@
-﻿using HtmlAgilityPack;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Text;
+using HtmlAgilityPack;
+using System.Drawing.Imaging;
 using System.Text.RegularExpressions;
+using System.Web;
+using Google.Cloud.Translation.V2;
+using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
 namespace SyosetuScraper
 {
-    class Chapter
+    public class Chapter
     {
         public int Id { get; }
         public int Number { get; }
         public string Name { get; }
+        public string tlName { get; set; }
         public string Link { get; }
         public NestDictionary<int, string, string> Pages { get; private set; } = new NestDictionary<int, string, string>();
-        public bool Valid { get; private set; } = false;
+        public int Valid { get; private set; } = -1;
         public NestDictionary<int, string, Image> Images { get; private set; } = new NestDictionary<int, string, Image>();
 
         private HtmlDocument _doc;
         private HtmlNodeCollection _header;
         private HtmlNodeCollection _footnotes;
         private readonly string _chapterPath;
+        private bool _emptyPreviousLine = false;
 
         public Chapter(int getId, int getNumber, string getName, string getLink, string getPath)
         {
             Id = getId;
             Number = getNumber;
             Name = getName;
-            Link = getLink; 
+            Link = getLink;
             _chapterPath = getPath;
+
+            if (Settings.Default.GoogleAPI && Settings.Default.TL_ChapterTitle)
+            {
+                TranslationResult result = Main.gClient.TranslateText(Name, LanguageCodes.English, LanguageCodes.Japanese);
+                tlName = result.TranslatedText;
+            }
+            if (!string.IsNullOrEmpty(tlName) && Settings.Default.GoogleAPI && !Settings.Default.TL_KeepOriginalAsWell)
+                Name = tlName;
         }
 
         public void CheckValidity()
         {
-            _doc = Scraping.GetPage(Link);
+            if (Settings.Default.NoChapterAlreadyDL)
+                if (ChapterExists())
+                {
+                    Valid = 5;
+                    _doc = null;
+                    return;
+                }
+
+            _doc = Helpers.GetPage(Link);
 
             var cNameNode = _doc.DocumentNode.SelectSingleNode("//p[@class='novel_subtitle']");
-            var chapterName = (cNameNode == null) ? string.Empty : cNameNode.InnerText.TrimStart().TrimEnd();
+            var chapterName = (cNameNode == null) ? string.Empty : Helpers.RemoveCensorship(HttpUtility.HtmlDecode(cNameNode.InnerText.TrimStart().TrimEnd()));
             var cIdNode = _doc.DocumentNode.SelectSingleNode("//div[@id='novel_no']");
             var chapterId = (cIdNode == null) ? string.Empty : cIdNode.InnerText.TrimStart().TrimEnd();
 
-            if (string.IsNullOrEmpty(chapterName) || string.IsNullOrEmpty(chapterId))
+            if (string.IsNullOrEmpty(chapterName))
+            {
+                Valid = 1;
+                _doc = null;
                 return;
+            }
+
+            if (string.IsNullOrEmpty(chapterId))
+            {
+                Valid = 2;
+                _doc = null;
+                return;
+            }
 
             if (chapterName != Name)
+            {
+                Valid = 3;
+                _doc = null;
                 return;
+            }
 
             chapterId = chapterId.Substring(0, chapterId.IndexOf("/"));
 
             if (Convert.ToInt32(chapterId) != Id)
+            {
+                Valid = 4;
+                _doc = null;
                 return;
+            }
 
-            Valid = true;
+            Valid = 0;
         }
 
         public void GetChapter(HtmlNode chapterNode = null)
@@ -76,9 +111,10 @@ namespace SyosetuScraper
                 _header.Insert(0, hNode1);
                 _header.Insert(1, hNode2);
                 DivideInPages(_header, ref chk, ref pageIndex);
+                _header = null;
             }
 
-            if(chapterNode == null)
+            if (chapterNode == null)
                 chapterNode = _doc.DocumentNode.SelectSingleNode("//div[@id='novel_honbun']");
 
             var lineNodes = chapterNode?.SelectNodes("./p[starts-with(@id, 'L')]");
@@ -102,16 +138,20 @@ namespace SyosetuScraper
                 }
             }
 
+            _doc = null;
+
             if (Settings.Default.IncludeFootnotes)
                 if (_footnotes.Count > 0)
                     DivideInPages(_footnotes, ref chk, ref pageIndex);
+
+            _footnotes = null;
 
             Save();
         }
 
         private Image GetImage(HtmlNode node)
         {
-            if (!Settings.Default.DownloadImages)
+            if (!Settings.Default.DLImages)
                 return null;
 
             var imgNode = node.SelectSingleNode(".//img[@src]");
@@ -161,7 +201,7 @@ namespace SyosetuScraper
             var kanji = "";
             var furigana = "";
 
-            foreach (var kMatch in kMatches.Where(kMatch => kMatch.Groups.Count > 1))            
+            foreach (var kMatch in kMatches.Where(kMatch => kMatch.Groups.Count > 1))
                 kanji += kMatch.Groups[1].Value;
 
             foreach (var fMatch in fMatches.Where(fMatch => fMatch.Groups.Count > 1))
@@ -200,28 +240,56 @@ namespace SyosetuScraper
                         Images[pageIndex][node.Id] = img;
                     }
                 }
-                else if (node.InnerHtml.Contains("<ruby>"))                
-                    line = Furigana(node);                
-                else                
-                    line = node.InnerText;                
+                else if (node.InnerHtml.Contains("<ruby>"))
+                    line = Furigana(node);
+                else
+                    line = node.InnerText;
 
+                line = HttpUtility.HtmlDecode(line);
                 line = line.Replace("　", "");
-                //had to do this cause GT counts crlf too but str.Length doesn't
-                var len = string.IsNullOrEmpty(line) ? 1 : line.Length;
-                chk += len;
 
-                if (chk > Settings.Default.PageMaxLength)
+                if (Settings.Default.RC_ChapterContent)
+                    line = Helpers.RemoveCensorship(line);
+
+                if (_emptyPreviousLine && string.IsNullOrEmpty(line))
                 {
-                    chk = len;
-                    pageIndex++;
-
-                    if (!Pages.ContainsKey(pageIndex))
-                        Pages[pageIndex] = Pages.New();
-                    if (!Images.ContainsKey(pageIndex))
-                        Images[pageIndex] = Images.New();
+                    continue;
                 }
+                else
+                {
+                    _emptyPreviousLine = string.IsNullOrEmpty(line);
 
-                Pages[pageIndex][node.Id] = line;
+                    //had to do this cause GT counts crlf too but str.Length doesn't
+                    var len = string.IsNullOrEmpty(line) ? 1 : line.Length;
+                    chk += len;
+
+                    if (chk > Settings.Default.PageMaxLength)
+                    {
+                        chk = len;
+                        pageIndex++;
+
+                        if (!Pages.ContainsKey(pageIndex))
+                            Pages[pageIndex] = Pages.New();
+                        if (!Images.ContainsKey(pageIndex))
+                            Images[pageIndex] = Images.New();
+                    }
+
+                    if (Settings.Default.GoogleAPI && Settings.Default.TL_ChapterContent && !string.IsNullOrEmpty(line))
+                    {
+                        try
+                        {
+                            TranslationResult result = Main.gClient.TranslateText(line, LanguageCodes.English, LanguageCodes.Japanese);
+                            Pages[pageIndex][node.Id] = result.TranslatedText;
+                        }
+                        catch (Google.GoogleApiException ex)
+                        {
+                            Pages[pageIndex][node.Id] = line;
+                            ChapterError(ex.Message);
+                        }
+                    }
+                    else
+                        Pages[pageIndex][node.Id] = line;
+                }
             }
         }
 
@@ -231,9 +299,9 @@ namespace SyosetuScraper
                 return "";
 
             var txt = new StringBuilder();
-            
+
             foreach (var line in Pages[page])
-                txt.AppendLine(line.Value);            
+                txt.AppendLine(line.Value);
 
             return txt.ToString();
         }
@@ -243,12 +311,13 @@ namespace SyosetuScraper
             foreach (var page in Pages)
             {
                 var chapterFileName = Settings.Default.ChapterFileNameFormat;
-                chapterFileName = chapterFileName.Replace("{Id}", Id.ToString());
-                chapterFileName = chapterFileName.Replace("{Number}", Number.ToString());
                 chapterFileName = chapterFileName.Replace("{Page}", page.Key.ToString());
-                chapterFileName = chapterFileName.Replace("{Name}", Name);
+                chapterFileName = Helpers.GenerateFileName(chapterFileName, this);
 
-                chapterFileName = $"{_chapterPath}\\{Novel.CheckChars(chapterFileName)}.txt";
+                if (string.IsNullOrEmpty(chapterFileName))
+                    chapterFileName = Name;
+
+                chapterFileName = $"{_chapterPath}\\{Helpers.CheckChars(chapterFileName)}.txt";
 
                 if (!File.Exists(chapterFileName))
                 {
@@ -261,40 +330,64 @@ namespace SyosetuScraper
                         tw.WriteLine(ToString(page.Key));
             }
 
+            Pages = null;
+
             foreach (var page in Images)
             {
                 foreach (var image in page.Value)
                 {
-                    var imagePath = Settings.Default.ChapterFileNameFormat;
-                    imagePath = imagePath.Replace("{Id}", Id.ToString());
-                    imagePath = imagePath.Replace("{Number}", Number.ToString());
+                    var imagePath = Settings.Default.ImageFileNameFormat;
                     imagePath = imagePath.Replace("{Page}", page.Key.ToString());
-                    imagePath = imagePath.Replace("{Name}", Name);
                     imagePath = imagePath.Replace("{Id_Image}", image.Key);
+                    imagePath = Helpers.GenerateFileName(imagePath, this);
 
-                    imagePath = $"{_chapterPath}\\{Novel.CheckChars(imagePath)}.png";
+                    if (string.IsNullOrEmpty(imagePath))
+                        imagePath = Name;
+
+                    imagePath = $"{_chapterPath}\\{Helpers.CheckChars(imagePath)}.png";
                     image.Value.Save(imagePath, ImageFormat.Png);
                 }
             }
-        }
 
-        public void Forget()
-        {
-            Pages = null;
             Images = null;
-            _doc = null;
-            _header = null;
-            _footnotes = null;
         }
-    }
 
-    public class NestDictionary<TKey1, TKey2, TValue> :
-        Dictionary<TKey1, Dictionary<TKey2, TValue>>
-    {
-    }
+        private bool ChapterExists()
+        {
+            var res = false;
 
-    public static class NestDictionaryExtensions
-    {
-        public static Dictionary<TKey2, TValue> New<TKey1, TKey2, TValue>(this NestDictionary<TKey1, TKey2, TValue> _) => new Dictionary<TKey2, TValue>();
+            var pattern = Settings.Default.ChapterFileNameFormat;
+            pattern = pattern.Replace("{Page}", "@Page@");
+            pattern = Helpers.GenerateFileName(pattern, this);
+            pattern = Helpers.CheckChars(pattern);
+            pattern = pattern.Replace("@Page@", @"\d+?") + @"\.txt";
+            pattern = Regex.Escape(pattern);
+
+            if (string.IsNullOrEmpty(pattern))
+                throw new ArgumentNullException();
+
+            var files = Directory.GetFiles(_chapterPath, "*.txt").Select(Path.GetFileName);
+
+            foreach (var file in files)
+            {
+                res = Regex.IsMatch(file, pattern, RegexOptions.ExplicitCapture);
+                
+                if (res)
+                    return res;
+            }
+
+            return res;
+        }
+
+        private void ChapterError(string errorMsg)
+        {
+            var path = _chapterPath + "\\ChapterError.txt";
+            using var tw = new StreamWriter(path, File.Exists(path));
+            if (File.Exists(path)) tw.WriteLine();
+            tw.WriteLine($"Chapter: {Number} - {Name}");
+            tw.WriteLine("Link: " + Link);
+            tw.WriteLine("Error message:");
+            tw.WriteLine(errorMsg);
+        }
     }
 }

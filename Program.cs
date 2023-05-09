@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
 namespace SyosetuScraper
 {
     static class Program
@@ -18,14 +12,7 @@ namespace SyosetuScraper
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            try
-            {
-                Application.Run(new Main());
-            }
-            catch
-            {
-
-            }
+            Application.Run(new Main());
         }
     }
 }
